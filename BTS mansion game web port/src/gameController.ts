@@ -11,7 +11,9 @@ import {
   buildMansionWorld,
   createDiningHallKey,
   createGalleryHalfKey,
+  createHolyWater,
   createMasterKey,
+  createMazeMap,
   createMirrorHalfKey,
 } from "./world";
 
@@ -28,6 +30,8 @@ export class GameController {
   private studyPuzzleSolved = false;
   private galleryPuzzleSolved = false;
   private mirrorPuzzleSolved = false;
+  private fountainPuzzleSolved = false;
+  private mazePuzzleSolved = false;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -40,6 +44,8 @@ export class GameController {
     this.studyPuzzleSolved = false;
     this.galleryPuzzleSolved = false;
     this.mirrorPuzzleSolved = false;
+    this.fountainPuzzleSolved = false;
+    this.mazePuzzleSolved = false;
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -241,12 +247,6 @@ export class GameController {
       return true;
     }
 
-    if (command === "GARDEN") {
-      this.ui.clear();
-      this.ui.displayPrompt("GARDEN is not ported yet (Phase 5c — fountain / shed / maze).");
-      return true;
-    }
-
     return false;
   }
 
@@ -342,13 +342,40 @@ export class GameController {
       return;
     }
 
+    if (command === "BLOCKED HEDGE MAZE") {
+      this.ui.clear();
+      this.handleDoors(
+        player,
+        currentRoom,
+        ["SHED", "FOUNTAIN", "HEDGE MAZE"],
+        command,
+        "You pour the holy water on the dark force blocking the entrance to the hedge maze, granting yourself access as the dark sludge burns away.",
+      );
+      this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
+      return;
+    }
+
+    if (command === "MAZE EXIT") {
+      this.ui.clear();
+      this.handleDoors(
+        player,
+        currentRoom,
+        ["GARDEN", "HEDGE MAZE EXIT"],
+        command,
+        "Using the map, you are able to find your way out of the maze, reaching the exit.",
+      );
+      this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
+      return;
+    }
+
     // Already handled in special movement, but keep as exit fallback
     if (
       command === "KITCHEN DOOR" ||
       command === "DINING HALL DOOR" ||
       command === "DINING HALL" ||
-      command === "PORTAL" ||
-      command === "GARDEN"
+      command === "PORTAL"
     ) {
       await this.handleSpecialMovement(player, currentRoom, command);
       return;
@@ -447,9 +474,7 @@ export class GameController {
       player.useItemWithId("CANDLE", "C2");
       this.ui.displayPrompt("You have placed a candle");
       currentRoom.addCandle();
-      this.ui.displayPrompt(
-        "As you place the candle, a portal is revealed!",
-      );
+      this.ui.displayPrompt("As you place the candle, a portal is revealed!");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       const options = currentRoom.getRoomOptions();
       if (!options.includes("PORTAL")) {
@@ -458,6 +483,18 @@ export class GameController {
       }
       this.syncRoom(currentRoom);
       return;
+    }
+
+    // C3 / C4 — place on the pentacle (no extra unlock in C++ ritual branch)
+    for (const id of ["C3", "C4"] as const) {
+      if (player.inInventory("CANDLE", id)) {
+        player.useItemWithId("CANDLE", id);
+        this.ui.displayPrompt("You have placed a candle");
+        currentRoom.addCandle();
+        this.ui.displayPentacle(currentRoom.getCandleValue());
+        this.syncRoom(currentRoom);
+        return;
+      }
     }
 
     this.ui.displayPrompt("You do not have a candle");
@@ -525,11 +562,11 @@ export class GameController {
   }
 
   /**
-   * Puzzle modules not ported yet — stubs still award half-keys so DOUBLE DOORS gating works.
+   * Puzzle modules not ported yet — stubs still award progression items so map gating works.
    */
   private async handlePuzzleStub(
     player: Player,
-    puzzleId: "gallery" | "mirror" | undefined,
+    puzzleId: "gallery" | "mirror" | "fountain" | "maze" | undefined,
   ): Promise<void> {
     if (puzzleId === "gallery") {
       if (this.galleryPuzzleSolved) {
@@ -569,6 +606,47 @@ export class GameController {
       this.mirrorPuzzleSolved = true;
       player.addItem(createMirrorHalfKey());
       this.tryCombineMasterKey(player);
+      return;
+    }
+
+    if (puzzleId === "fountain") {
+      if (this.fountainPuzzleSolved) {
+        this.ui.displayPrompt("This item seems dormant.");
+        return;
+      }
+      this.ui.displayPrompt("Do you want to begin the Fountain Puzzle? (YES or NO)");
+      const answer = (await this.ui.userInput()).trim().toUpperCase();
+      if (answer !== "YES") {
+        this.ui.displayPrompt("You walk away.");
+        return;
+      }
+      this.ui.displayPrompt("Puzzle not ported yet — granting HOLY WATER for exploration.");
+      this.ui.displayPrompt("You solved the Fountain Puzzle!");
+      this.fountainPuzzleSolved = true;
+      player.addItem(createHolyWater());
+      return;
+    }
+
+    if (puzzleId === "maze") {
+      if (this.mazePuzzleSolved) {
+        this.ui.displayPrompt("This item seems dormant.");
+        return;
+      }
+      this.ui.displayPrompt(
+        "You should explore the maze, paying attention to your surrondings, do you want to explore? (YES or NO)",
+      );
+      const answer = (await this.ui.userInput()).trim().toUpperCase();
+      if (answer !== "YES") {
+        this.ui.displayPrompt("You walk away.");
+        return;
+      }
+      this.ui.displayPrompt("Puzzle not ported yet — granting MAZE MAP for exploration.");
+      this.ui.displayPrompt("You solved the Maze Puzzle!");
+      this.ui.displayPrompt(
+        "You find a map of the maze at the end of this sequence of symbols, picking it up to navigate the maze.",
+      );
+      this.mazePuzzleSolved = true;
+      player.addItem(createMazeMap());
       return;
     }
 

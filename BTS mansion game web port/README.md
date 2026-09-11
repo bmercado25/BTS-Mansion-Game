@@ -5,20 +5,23 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 5b status
+## Phase 5c status
 
-Upstairs wing added on top of downstairs:
+Full mansion topology walkable (puzzles still stubbed):
 
-- UPSTAIRS, MIRROR ROOM 1 / 2, STORYTELLER'S ROOM, GALLERY, MASTER BEDROOM
-- PORTAL: Ritual (C2 candle) ↔ UPSTAIRS ↔ FOYER
-- DOUBLE DOORS gated by MASTER KEY (`idMaster`)
-- Gallery / Mirror puzzles are stubs that still award half-keys so the lock can be tested
-- GARDEN exit stubbed (Phase 5c)
+- Downstairs + upstairs + **GARDEN / SHED / FOUNTAIN / HEDGE MAZE / HEDGE MAZE EXIT**
+- Fountain stub → `HOLY WATER` → `BLOCKED HEDGE MAZE`
+- Maze lantern stub → `MAZE MAP` → `MAZE EXIT` → candle C4
+- Ritual accepts C1–C4 candle placement (C1 kitchen tunnel, C2 portal)
 
-## Reach upstairs
+Not yet: memory mansion wing, real puzzle solvers, sanity timer
 
-1. Downstairs → STUDY candle (C2) → RITUAL ROOM → `CANDLE` → `PORTAL`
-2. Explore GALLERY / COMBINATION LOCK (YES on stubs) → MASTER KEY → `DOUBLE DOORS` → MASTER BEDROOM
+## Outdoor path
+
+1. MASTER BEDROOM → `GARDEN`
+2. `FOUNTAIN` → FOUNTAIN PANEL (YES) → HOLY WATER
+3. `BLOCKED HEDGE MAZE` → `HEDGE MAZE`
+4. LANTERN (YES) → MAZE MAP → `MAZE EXIT` → `HEDGE MAZE EXIT`
 
 ## Run
 

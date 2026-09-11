@@ -29,7 +29,7 @@ export function createMasterKey(): Item {
 
 /**
  * Upstairs / gallery / master content from C++ GameControllerClass.cpp (Phase 5b).
- * GARDEN exit from master is listed but not fully ported until Phase 5c.
+ * GARDEN exit from master connects to the outdoor wing (Phase 5c).
  */
 export function buildUpstairsWorld(): Map<string, Room> {
   const rooms = new Map<string, Room>();
