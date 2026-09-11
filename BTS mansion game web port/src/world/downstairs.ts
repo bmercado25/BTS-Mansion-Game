@@ -2,7 +2,6 @@ import { Door, Item, Room } from "../domain";
 
 /**
  * Downstairs mansion content from C++ GameControllerClass.cpp (Phase 5a).
- * Upstairs / garden / memory wings intentionally omitted.
  */
 export function buildDownstairsWorld(): Map<string, Room> {
   const rooms = new Map<string, Room>();

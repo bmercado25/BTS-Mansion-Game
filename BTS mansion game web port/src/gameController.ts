@@ -7,10 +7,16 @@ import {
   presentInventory,
   presentRoomItems,
 } from "./domain";
-import { buildDownstairsWorld, createDiningHallKey } from "./world/downstairs";
+import {
+  buildMansionWorld,
+  createDiningHallKey,
+  createGalleryHalfKey,
+  createMasterKey,
+  createMirrorHalfKey,
+} from "./world";
 
 /**
- * GameController — Phase 5a downstairs world + command loop.
+ * GameController — Phase 5b mansion world (downstairs + upstairs/gallery/master).
  */
 export class GameController {
   private readonly ui: UserInterface;
@@ -20,20 +26,24 @@ export class GameController {
   private kitchenDoorOpen = false;
   private diningHallDoorOpen = false;
   private studyPuzzleSolved = false;
+  private galleryPuzzleSolved = false;
+  private mirrorPuzzleSolved = false;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
   }
 
   async startGame(): Promise<void> {
-    this.rooms = buildDownstairsWorld();
+    this.rooms = buildMansionWorld();
     this.kitchenDoorOpen = false;
     this.diningHallDoorOpen = false;
     this.studyPuzzleSolved = false;
+    this.galleryPuzzleSolved = false;
+    this.mirrorPuzzleSolved = false;
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
-      throw new Error("FOYER missing from downstairs world.");
+      throw new Error("FOYER missing from mansion world.");
     }
 
     this.player = new Player(foyer);
@@ -227,11 +237,42 @@ export class GameController {
 
     if (command === "PORTAL") {
       this.ui.clear();
-      this.ui.displayPrompt("PORTAL leads upstairs — not ported yet (Phase 5b).");
+      this.handlePortal(player);
+      return true;
+    }
+
+    if (command === "GARDEN") {
+      this.ui.clear();
+      this.ui.displayPrompt("GARDEN is not ported yet (Phase 5c — fountain / shed / maze).");
       return true;
     }
 
     return false;
+  }
+
+  private handlePortal(player: Player): void {
+    if (player.getRoomName() === "UPSTAIRS") {
+      const foyer = this.rooms.get("FOYER");
+      if (foyer) {
+        player.setRoom(foyer);
+        this.ui.displayPrompt(
+          "You step through the portal and find yourself back in the foyer (Room A).",
+        );
+      }
+      return;
+    }
+
+    const upstairs = this.rooms.get("UPSTAIRS");
+    if (!upstairs) {
+      this.ui.displayPrompt("The portal flickers, but leads nowhere.");
+      return;
+    }
+
+    this.ui.displayPrompt(
+      "You step into the portal, and feel a strange pull as reality warps around you.",
+    );
+    this.ui.displayPrompt("You have entered the portal and now find yourself upstairs.");
+    player.setRoom(upstairs);
   }
 
   private async handleExitCommand(
@@ -281,11 +322,33 @@ export class GameController {
       return;
     }
 
+    if (command === "DOUBLE DOORS") {
+      this.ui.clear();
+      this.handleDoors(
+        player,
+        currentRoom,
+        [
+          "PORTAL",
+          "MIRROR ROOM 1",
+          "MIRROR ROOM 2",
+          "STORYTELLER'S ROOM",
+          "GALLERY",
+          "MASTER BEDROOM",
+        ],
+        command,
+      );
+      this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
+      return;
+    }
+
     // Already handled in special movement, but keep as exit fallback
     if (
       command === "KITCHEN DOOR" ||
       command === "DINING HALL DOOR" ||
-      command === "DINING HALL"
+      command === "DINING HALL" ||
+      command === "PORTAL" ||
+      command === "GARDEN"
     ) {
       await this.handleSpecialMovement(player, currentRoom, command);
       return;
@@ -394,7 +457,6 @@ export class GameController {
         currentRoom.setRoomOptions(options);
       }
       this.syncRoom(currentRoom);
-      this.ui.displayPrompt("(PORTAL / upstairs arrives in Phase 5b.)");
       return;
     }
 
@@ -440,7 +502,7 @@ export class GameController {
     }
 
     if (interaction.kind === "puzzle") {
-      this.ui.displayPrompt("Puzzle not ported yet");
+      await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
 
@@ -449,7 +511,10 @@ export class GameController {
       this.ui.displayPrompt("Enter action (INTERACT):");
       const action = (await this.ui.userInput()).trim().toUpperCase();
       if (action === "INTERACT" || action === "YES") {
-        this.ui.displayPrompt(interaction.outputMessage ?? "");
+        const message = interaction.outputMessage ?? "";
+        for (const line of message.split("\n")) {
+          this.ui.displayPrompt(line);
+        }
       } else {
         this.ui.displayPrompt("You walk away.");
       }
@@ -457,6 +522,71 @@ export class GameController {
     }
 
     this.ui.displayPrompt(interaction.outputMessage ?? "Nothing happens.");
+  }
+
+  /**
+   * Puzzle modules not ported yet — stubs still award half-keys so DOUBLE DOORS gating works.
+   */
+  private async handlePuzzleStub(
+    player: Player,
+    puzzleId: "gallery" | "mirror" | undefined,
+  ): Promise<void> {
+    if (puzzleId === "gallery") {
+      if (this.galleryPuzzleSolved) {
+        this.ui.displayPrompt("This item seems dormant.");
+        return;
+      }
+      this.ui.displayPrompt("Do you want to initiate puzzle? (YES or NO)");
+      const answer = (await this.ui.userInput()).trim().toUpperCase();
+      if (answer !== "YES") {
+        this.ui.displayPrompt("You walk away.");
+        return;
+      }
+      this.ui.displayPrompt("Puzzle not ported yet — granting GALLERY HALF KEY for exploration.");
+      this.galleryPuzzleSolved = true;
+      player.addItem(createGalleryHalfKey());
+      this.tryCombineMasterKey(player);
+      return;
+    }
+
+    if (puzzleId === "mirror") {
+      if (this.mirrorPuzzleSolved) {
+        this.ui.displayPrompt("You already solved this puzzle.");
+        return;
+      }
+      this.ui.displayPrompt("Do you want to solve the three word combination? (YES or NO)");
+      const answer = (await this.ui.userInput()).trim().toUpperCase();
+      if (answer !== "YES") {
+        this.ui.displayPrompt("You walk away.");
+        return;
+      }
+      this.ui.displayPrompt(
+        "Puzzle not ported yet — granting MIRROR HALF KEY for exploration.",
+      );
+      this.ui.displayPrompt(
+        "You solved the Mirror Puzzle! You recieved a half of a key in your inventory.",
+      );
+      this.mirrorPuzzleSolved = true;
+      player.addItem(createMirrorHalfKey());
+      this.tryCombineMasterKey(player);
+      return;
+    }
+
+    this.ui.displayPrompt("Puzzle not ported yet");
+  }
+
+  private tryCombineMasterKey(player: Player): void {
+    const hasGallery = player.inInventory("GALLERY HALF KEY");
+    const hasMirror = player.inInventory("MIRROR HALF KEY");
+    if (!hasGallery || !hasMirror) {
+      return;
+    }
+    player.removeItem("GALLERY HALF KEY");
+    player.removeItem("MIRROR HALF KEY");
+    this.ui.displayPrompt(
+      "You put both halves of your key together to form the MASTER BEDROOM KEY!",
+    );
+    player.addItem(createMasterKey());
   }
 
   private async handleSafe(currentRoom: Room): Promise<void> {

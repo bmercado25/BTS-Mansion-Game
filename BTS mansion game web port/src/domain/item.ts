@@ -4,6 +4,8 @@
 export type InteractionHook = {
   /** Special handler id used by GameController. */
   kind?: "message" | "safe" | "puzzle" | "stub";
+  /** Which puzzle stub (Phase 5b — full solvers arrive later). */
+  puzzleId?: "gallery" | "mirror";
   /** Prompt shown when inspecting / interacting (C++ inputMessage). */
   inputMessage?: string;
   /** Result text after interacting (C++ interactMessage). */

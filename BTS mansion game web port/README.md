@@ -5,26 +5,20 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 5a status
+## Phase 5b status
 
-Downstairs world ported into `GameController`:
+Upstairs wing added on top of downstairs:
 
-- FOYER, LOUNGE, LIBRARY, GREATER LIBRARY, STUDY
-- HIDDEN SECTION, RITUAL ROOM
-- DINING HALL, KITCHEN
+- UPSTAIRS, MIRROR ROOM 1 / 2, STORYTELLER'S ROOM, GALLERY, MASTER BEDROOM
+- PORTAL: Ritual (C2 candle) ↔ UPSTAIRS ↔ FOYER
+- DOUBLE DOORS gated by MASTER KEY (`idMaster`)
+- Gallery / Mirror puzzles are stubs that still award half-keys so the lock can be tested
+- GARDEN exit stubbed (Phase 5c)
 
-Locks / keys: `RUSTY KEY` → DOOR, `OLD BOOK` → BOOKSHELF, dining safe `8691` → `DINING HALL KEY` → GREATER LIBRARY DOOR, study gate word `YDDID`
+## Reach upstairs
 
-Stubbed: upstairs / PORTAL / garden / real puzzle modules
-
-## Suggested downstairs path
-
-1. `START` in FOYER  
-2. `LOUNGE` → pick up `RUSTY KEY`  
-3. `FOYER` → `DOOR` → `LIBRARY`  
-4. Pick up `OLD BOOK` → `BOOKSHELF` → `HIDDEN SECTION` → candle  
-5. `DINING HALL` via lounge door → safe `8691` → `GREATER LIBRARY DOOR`  
-6. `PUZZLE` / `YDDID` → `STUDY` → second candle → `RITUAL ROOM`
+1. Downstairs → STUDY candle (C2) → RITUAL ROOM → `CANDLE` → `PORTAL`
+2. Explore GALLERY / COMBINATION LOCK (YES on stubs) → MASTER KEY → `DOUBLE DOORS` → MASTER BEDROOM
 
 ## Run
 
