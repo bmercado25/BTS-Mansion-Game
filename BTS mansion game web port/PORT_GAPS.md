@@ -34,12 +34,12 @@ Web port: this folder. Execute revisions in order **R2 → R10** (see below).
 | System | Latest C++ | Port today | Fix phase |
 |--------|------------|------------|-----------|
 | Study gate | WORD LOCK → `DODGE` → STUDY KEY → STUDY DOOR | Ported (R3) | done |
-| Ritual win | C5 → `endingSequence` (name the demon/friend) | C5 → stub `endingSequence` (full endings **R7**) | **R7** |
+| Ritual win | C5 → `endingSequence` (name the demon/friend) | Ported (R7) | done |
 | C4 memory entry | Place C4 → teleport to MEMORY OF THE MANSION + sequence | Ported (R6) | done |
 | C3–C5 placement | Full branches + letters; C3/C4/C5 may skip `addCandle` in C++ | Ported; port always `addCandle` for pentacle (R6) | done |
 | Sanity drain | **−1** / 9s | Ported (R5) | done |
 | Low sanity UI | Jumbling at ≤35 | Ported (R5) for room descriptions | done |
-| Lose messaging | Sanity / monster / bad ending variants | Single lose blurb (+ invented win) | **R5 / R7** |
+| Lose messaging | Sanity / monster / bad ending variants | Lose blurb + three ritual endings (R7) | done |
 | Memory copy | Updated descriptions + garbled Sight text + MEMORY TABLE | Older/temporary letter-room text | **R2 / R8** |
 | Pentacle art | Latest C++ draws one static pentacle | Staged 0–5 art (better UX; keep unless matching static) | Optional **R8** |
 | Candle5 | Key id `"C5"` | Port already uses C5 | Align only |
@@ -88,7 +88,7 @@ Clue sources: ritual letters → **MALUM**; journals / newspaper → **HENRY**.
 - [x] **R4** Monster timer + protected + hide reset  
 - [x] **R5** Sanity −1/9s + jumble + SANITY command  
 - [x] **R6** Ritual letters, C4 teleports, drop fake 5-candle win  
-- [ ] **R7** `endingSequence` (HENRY / MALUM / bad)  
+- [x] **R7** `endingSequence` (HENRY / MALUM / bad)  
 - [ ] **R8** Copy/backstory/string sync  
 - [ ] **R9** Audio (optional)  
 - [ ] **R10** Full playthrough softlock sweep  

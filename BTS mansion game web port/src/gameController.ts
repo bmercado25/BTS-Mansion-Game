@@ -31,6 +31,7 @@ import {
   GreaterLibraryPuzzle,
 } from "./puzzles";
 import { MonsterTimer, MONSTER_GRAB_ART } from "./monster";
+import { GOOD_ENDING, NEUTRAL_ENDING, BAD_ENDING } from "./endings";
 
 /**
  * GameController — mansion world + interactions + monster timer (R4).
@@ -139,8 +140,7 @@ export class GameController {
   }
 
   /**
-   * After C5 / endingSequence — stop timers without inventing a custom win.
-   * Full HENRY / MALUM / bad text lands in R7.
+   * After C5 / endingSequence — clear + thank-you (C++ endGame flavor overload).
    */
   private settleAfterEnding(): void {
     if (this.outcomeSettled) {
@@ -151,6 +151,7 @@ export class GameController {
     this.stopMonsterTimer();
     this.running = false;
     this.ui.cancelAsk();
+    this.ui.clear();
     this.ui.displayPrompt("Thank you for playing.");
   }
 
@@ -899,10 +900,53 @@ export class GameController {
   }
 
   /**
-   * Stub for R7 — C++ endingSequence (SAY MY NAME → HENRY / MALUM / bad).
+   * Port of GameControllerClass::endingSequence.
+   * HENRY → good; MALUM (without HENRY) → neutral; neither → bad.
    */
   private async endingSequence(): Promise<void> {
+    // Stop threats before the name prompt / long text (any ending path).
+    this.stopSanitySequence();
+    this.stopMonsterTimer();
+
     this.ui.displayPrompt("I AM...");
+    for (let i = 0; i < 2; i++) {
+      await this.ui.sleep(1000);
+      this.ui.displayPrompt("I AM");
+    }
+
+    let neutralSequence = false;
+    let goodSequence = false;
+
+    for (let i = 0; i < 3; i++) {
+      if (goodSequence) {
+        break;
+      }
+      this.ui.displayPrompt("SAY MY NAME");
+      const command = (await this.ui.userInput()).trim().toUpperCase();
+
+      if (command === "MALUM") {
+        neutralSequence = true;
+      } else if (command === "HENRY") {
+        goodSequence = true;
+      }
+    }
+
+    if (!neutralSequence && !goodSequence) {
+      await this.displayEndingLines(BAD_ENDING);
+    } else if (neutralSequence && !goodSequence) {
+      await this.displayEndingLines(NEUTRAL_ENDING);
+    } else if (goodSequence) {
+      await this.displayEndingLines(GOOD_ENDING);
+    }
+  }
+
+  /** C++ istringstream + getline + waitForInput per line. */
+  private async displayEndingLines(ending: string): Promise<void> {
+    const lines = ending.split("\n");
+    for (const line of lines) {
+      this.ui.displayPrompt(line);
+      await this.ui.waitForInput();
+    }
   }
 
   private async handleInspect(player: Player): Promise<void> {
