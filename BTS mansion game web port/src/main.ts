@@ -25,21 +25,35 @@ function wantsDomainDemo(): boolean {
 function syncMuteButton(button: HTMLButtonElement): void {
   const muted = gameAudio.isMuted();
   button.setAttribute("aria-pressed", muted ? "true" : "false");
-  button.textContent = muted ? "Sound: Off" : "Sound: On";
+  button.setAttribute(
+    "aria-label",
+    muted ? "Unmute game audio" : "Mute game audio",
+  );
   button.title = muted ? "Unmute game audio" : "Mute game audio";
 }
 
-function wireMuteToggle(): void {
+function wireAudioControls(): void {
   const button = document.querySelector<HTMLButtonElement>("#audio-mute");
-  if (!button) {
-    return;
+  const slider = document.querySelector<HTMLInputElement>("#audio-volume");
+
+  if (slider) {
+    slider.value = String(Math.round(gameAudio.getVolume() * 100));
+    const applyVolume = () => {
+      gameAudio.unlock();
+      gameAudio.setVolume(Number(slider.value) / 100);
+    };
+    slider.addEventListener("input", applyVolume);
+    slider.addEventListener("change", applyVolume);
   }
-  syncMuteButton(button);
-  button.addEventListener("click", () => {
-    gameAudio.unlock();
-    gameAudio.toggleMute();
+
+  if (button) {
     syncMuteButton(button);
-  });
+    button.addEventListener("click", () => {
+      gameAudio.unlock();
+      gameAudio.toggleMute();
+      syncMuteButton(button);
+    });
+  }
 }
 
 /** First keypress / click unlocks audio for later SFX (autoplay policy). */
@@ -66,10 +80,12 @@ async function menuFlow(): Promise<void> {
     gameAudio.unlock();
 
     if (command === "START" || command === "START GAME") {
+      await gameAudio.enterGameplay();
       await game.startGame();
       ui.displayPrompt("");
       ui.displayPrompt("Press Enter to return to the menu.");
       await ui.waitForInput();
+      gameAudio.enterMenu();
       ui.clear();
       ui.displayMenu();
       continue;
@@ -96,6 +112,6 @@ async function menuFlow(): Promise<void> {
   }
 }
 
-wireMuteToggle();
+wireAudioControls();
 wireAudioUnlock();
 void menuFlow();

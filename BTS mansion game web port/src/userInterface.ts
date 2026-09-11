@@ -1,5 +1,10 @@
-import type { Terminal } from "./terminal";
+import type { LineKind, StatusInfo, Terminal } from "./terminal";
 import { pentacleArt } from "./pentacles";
+
+type NoticeLine = {
+  text: string;
+  kind: LineKind;
+};
 
 /**
  * Browser port of C++ UserInterfaceClass.
@@ -8,9 +13,19 @@ import { pentacleArt } from "./pentacles";
 export class UserInterface {
   private currentInput = "";
   private readonly terminal: Terminal;
+  /** Feedback kept for the next room frame (doors, unlocks, interact, etc.). */
+  private pendingNotices: NoticeLine[] = [];
+  private suppressNoticeCapture = false;
 
   constructor(terminal: Terminal) {
     this.terminal = terminal;
+  }
+
+  private captureNotice(text: string, kind: LineKind): void {
+    if (this.suppressNoticeCapture) {
+      return;
+    }
+    this.pendingNotices.push({ text, kind });
   }
 
   /**
@@ -19,21 +34,101 @@ export class UserInterface {
    */
   displayPrompt(prompt: string, sanity?: number): void {
     if (sanity === undefined) {
-      this.terminal.print(prompt);
+      this.terminal.print(prompt, "body");
+      this.captureNotice(prompt, "body");
       return;
     }
-    this.terminal.print(this.formatSanityPrompt(prompt, sanity));
+    const text = this.formatSanityPrompt(prompt, sanity);
+    this.terminal.print(text, "room");
+    this.captureNotice(text, "room");
+  }
+
+  displayLine(text: string, kind: LineKind = "body"): void {
+    this.terminal.print(text, kind);
+    this.captureNotice(text, kind);
+  }
+
+  displayDivider(): void {
+    this.terminal.print("", "divider");
+    this.captureNotice("", "divider");
+  }
+
+  setStatus(info: StatusInfo): void {
+    this.terminal.setStatus(info);
+  }
+
+  setPlaceholder(text: string): void {
+    this.terminal.setPlaceholder(text);
   }
 
   displayMenu(): void {
-    this.terminal.print("***Welcome to the BTS Mansion Game!***");
-    this.terminal.print("===== Main Menu =====");
-    this.terminal.print("START Game");
-    this.terminal.print("QUIT");
-    this.terminal.print("=====================");
+    this.pendingNotices = [];
+    this.terminal.clearBanner();
+    this.terminal.clear();
+    this.terminal.setStatus({ room: "MENU", sanity: null });
+    this.terminal.setPlaceholder("");
+    this.suppressNoticeCapture = true;
+    this.terminal.print("***Welcome to the BTS Mansion Game!***", "heading");
+    this.terminal.print("===== Main Menu =====", "system");
+    this.terminal.print("START Game", "exits");
+    this.terminal.print("QUIT", "exits");
+    this.terminal.print("=====================", "system");
     this.terminal.print(
       "Words in all caps will be input options for this game, please enter an option:",
+      "dim",
     );
+    this.suppressNoticeCapture = false;
+  }
+
+  /**
+   * Frame a room turn: name, description, exits.
+   * Pending interaction feedback goes into the EVENT banner above the log.
+   */
+  displayRoomTurn(options: {
+    roomName: string;
+    sanity: number;
+    description: string;
+    exits: string[];
+    jumbleSanity?: boolean;
+  }): void {
+    const { roomName, sanity, description, exits, jumbleSanity = true } =
+      options;
+
+    const notices = this.pendingNotices;
+    this.pendingNotices = [];
+
+    this.suppressNoticeCapture = true;
+    this.terminal.clear();
+    this.terminal.setStatus({ room: roomName, sanity });
+    this.terminal.setPlaceholder("");
+    this.terminal.setBanner(notices);
+
+    this.terminal.print(`— ${roomName} —`, "heading");
+    this.terminal.print(`Sanity Level: ${sanity}`, sanity <= 35 ? "alert" : "dim");
+    this.terminal.print("", "body");
+
+    if (jumbleSanity) {
+      this.terminal.print(this.formatSanityPrompt(description, sanity), "room");
+    } else {
+      this.terminal.print(description, "room");
+    }
+
+    this.terminal.print("", "body");
+    this.terminal.print("Rooms you can go to:", "system");
+    if (exits.length === 0) {
+      this.terminal.print("(none)", "dim");
+    } else {
+      for (const exit of exits) {
+        this.terminal.print(exit, "exits");
+      }
+    }
+
+    this.terminal.print("", "body");
+    this.terminal.print(
+      "INSPECT · INVENTORY · QUIT",
+      "dim",
+    );
+    this.suppressNoticeCapture = false;
   }
 
   async userInput(): Promise<string> {
@@ -60,12 +155,17 @@ export class UserInterface {
    * Also accepts PICKUP, matching C++ waitForInput().
    */
   async waitForInput(): Promise<void> {
+    this.terminal.setPlaceholder("Press Enter…");
     while (true) {
       const input = await this.terminal.ask();
       if (input === "" || input === "PICKUP") {
+        this.terminal.setPlaceholder("");
         return;
       }
-      this.terminal.print("Invalid input, please press Enter key to continue story");
+      this.terminal.print(
+        "Invalid input, please press Enter key to continue story",
+        "dim",
+      );
     }
   }
 
@@ -78,11 +178,18 @@ export class UserInterface {
   }
 
   clear(): void {
+    this.pendingNotices = [];
+    this.terminal.clearBanner();
     this.terminal.clear();
   }
 
   sleep(ms: number): Promise<void> {
     return this.terminal.sleep(ms);
+  }
+
+  /** Abrupt CRT black cut between room moves. */
+  blackout(ms = 230): Promise<void> {
+    return this.terminal.blackout(ms);
   }
 
   /** Unblock a waiting ask() (sanity game-over / quit). */
@@ -108,7 +215,7 @@ export class UserInterface {
 
   /**
    * Port of UserInterfaceClass::jumble_word.
-   * No jumble when sanity >= 35, ALL CAPS, or length <= 2.
+   * Jumble when sanity < 35 (C++ returns unchanged at intensity >= 35).
    */
   private jumbleWord(word: string, intensity: number): string {
     if (this.isAllUppercase(word)) {
@@ -128,9 +235,8 @@ export class UserInterface {
 
     const chars = [...word];
     if (jumbleFactor > 0.5) {
-      const numSwaps = Math.floor(word.length * jumbleFactor);
+      const numSwaps = Math.max(1, Math.floor(word.length * jumbleFactor));
       for (let i = 0; i < numSwaps; i++) {
-        // Skip first character (match C++ idx range on length-1 starting at 1).
         const idx1 = 1 + Math.floor(Math.random() * (word.length - 1));
         const idx2 = 1 + Math.floor(Math.random() * (word.length - 1));
         const a = chars[idx1];
@@ -140,8 +246,10 @@ export class UserInterface {
           chars[idx2] = a;
         }
       }
-    } else if (chars.length > 2) {
-      // Slight shuffle of middle characters.
+      return chars.join("");
+    }
+
+    if (chars.length > 2) {
       const mid = chars.slice(1, -1);
       for (let i = mid.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

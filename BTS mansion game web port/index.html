@@ -8,62 +8,99 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=VT323&display=swap"
+      href="https://fonts.googleapis.com/css2?family=VT323&display=swap"
       rel="stylesheet"
     />
   </head>
   <body>
     <div id="app">
       <div class="desk">
-        <div class="machine" role="region" aria-label="BTS Mansion Game computer">
-          <header class="machine-header">
-            <div class="machine-badge">
-              <p class="machine-brand">BTS SYSTEMS</p>
-              <h1 class="machine-title">Mansion Game</h1>
-            </div>
-            <div class="machine-controls">
-              <button
-                type="button"
-                id="audio-mute"
-                class="audio-mute"
-                aria-pressed="false"
-                title="Mute game audio"
-              >
-                Sound: On
-              </button>
-              <div class="machine-leds" aria-hidden="true">
-                <span class="led led-power is-on"></span>
-                <span class="led led-disk"></span>
-              </div>
-            </div>
-          </header>
+        <div class="machine-titlebar">
+          <div class="machine-badge">
+            <p class="machine-brand">BTS SYSTEMS</p>
+            <h1 class="machine-title">Mansion Game</h1>
+          </div>
+          <div class="audio-controls">
+            <label class="audio-volume" for="audio-volume">
+              <span class="audio-volume-label">Volume</span>
+              <input
+                id="audio-volume"
+                class="audio-volume-slider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="100"
+                aria-label="Game volume"
+              />
+            </label>
+            <button
+              type="button"
+              id="audio-mute"
+              class="audio-mute"
+              aria-pressed="false"
+              aria-label="Mute game audio"
+              title="Mute game audio"
+            >
+              <svg class="audio-icon audio-icon-on" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
+                />
+              </svg>
+              <svg class="audio-icon audio-icon-muted" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
 
+        <div class="machine" role="region" aria-label="BTS Mansion Game computer">
           <div class="crt-bezel">
             <div id="terminal" class="terminal" aria-label="Game terminal">
               <div class="crt-glow" aria-hidden="true"></div>
-              <div id="output" class="terminal-output" role="log" aria-live="polite"></div>
+              <div class="terminal-status" aria-live="polite">
+                <span class="status-block">
+                  <span class="status-label">LOC</span>
+                  <span id="status-room" class="status-value">MENU</span>
+                </span>
+                <span class="status-block">
+                  <span class="status-label">SAN</span>
+                  <span id="status-sanity" class="status-value" data-level="idle">—</span>
+                </span>
+              </div>
+              <div class="terminal-content">
+                <div id="terminal-blackout" class="terminal-blackout" hidden aria-hidden="true"></div>
+                <div
+                  id="terminal-banner"
+                  class="terminal-banner"
+                  hidden
+                  role="status"
+                  aria-live="polite"
+                  aria-label="Event notice"
+                ></div>
+                <div id="output" class="terminal-output" role="log" aria-live="polite"></div>
+              </div>
               <form id="input-form" class="terminal-input-row" autocomplete="off">
                 <label class="terminal-prompt" for="command-input">»</label>
-                <input
-                  id="command-input"
-                  class="terminal-input"
-                  type="text"
-                  spellcheck="false"
-                  autocapitalize="off"
-                  autocomplete="off"
-                  aria-label="Command input"
-                />
+                <div class="terminal-input-wrap">
+                  <input
+                    id="command-input"
+                    class="terminal-input"
+                    type="text"
+                    spellcheck="false"
+                    autocapitalize="off"
+                    autocomplete="off"
+                    aria-label="Command input"
+                  />
+                  <span class="terminal-caret" aria-hidden="true"></span>
+                </div>
               </form>
             </div>
           </div>
-
-          <footer class="machine-footer">
-            <p class="machine-resize-hint">Drag corner to resize</p>
-            <div class="machine-vents" aria-hidden="true">
-              <span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span>
-            </div>
-          </footer>
         </div>
 
         <aside class="about" id="about" aria-label="About the project">
@@ -72,6 +109,8 @@
             Browser port of a large-scale text-based horror adventure originally built in C++
             by a team of seven engineers over three months.
           </p>
+
+          <hr class="about-rule" />
 
           <section class="about-section">
             <h3>Development</h3>
@@ -82,10 +121,12 @@
               source of truth for gameplay content.
             </p>
             <p>
-              <strong>Web port status:</strong> Phase 7d — Mirror, Fountain, Maze,
-              Gallery puzzles live. Chant / memory still stubbed.
+              <strong>Web port status:</strong> Revisions R1–R10 complete —
+              full critical path, endings, sanity/monster systems, and audio.
             </p>
           </section>
+
+          <hr class="about-rule" />
 
           <section class="about-section">
             <h3>Contributors</h3>
@@ -99,6 +140,8 @@
               <li>Contributor name — role</li>
             </ul>
           </section>
+
+          <hr class="about-rule" />
 
           <section class="about-section">
             <h3>Links</h3>

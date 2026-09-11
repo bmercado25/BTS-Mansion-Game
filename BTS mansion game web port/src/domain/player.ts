@@ -28,8 +28,9 @@ export class Player {
     return this.sanityMeter;
   }
 
+  /** Clamp to 0..100 (matches C++ updateSanity bounds). */
   setSanity(sanityValue: number): void {
-    this.sanityMeter = sanityValue;
+    this.sanityMeter = Math.max(0, Math.min(100, sanityValue));
   }
 
   getRoom(): Room {

@@ -4,7 +4,6 @@ import {
   PickUpItem,
   Player,
   Room,
-  presentExits,
   presentInventory,
   presentRoomItems,
 } from "./domain";
@@ -113,9 +112,13 @@ export class GameController {
 
   /** Port of GameControllerClass::displayBackstory — line-by-line waitForInput. */
   private async displayBackstory(): Promise<void> {
+    this.ui.setStatus({
+      room: "BACKSTORY",
+      sanity: null,
+    });
     const lines = BACKSTORY.split("\n");
     for (const line of lines) {
-      this.ui.displayPrompt(line);
+      this.ui.displayLine(line, "room");
       await this.ui.waitForInput();
     }
   }
@@ -141,12 +144,12 @@ export class GameController {
     this.ui.cancelAsk();
 
     this.ui.clear();
-    this.ui.displayPrompt(
-      "Your world disappears around you. You are still aware but there is nothing,",
-    );
-    this.ui.displayPrompt("like someone pulled the plug on your brain - Am I dead?");
-    this.ui.displayPrompt("...You wonder if this will end.");
-    this.ui.displayPrompt("Thank you for playing");
+    this.ui.setStatus({ room: "END", sanity: null });
+    this.ui.setPlaceholder("");
+    this.ui.displayLine("Your world disappears around you. You are still aware but there is nothing,", "alert");
+    this.ui.displayLine("like someone pulled the plug on your brain - Am I dead?", "alert");
+    this.ui.displayLine("...You wonder if this will end.", "dim");
+    this.ui.displayLine("Thank you for playing", "heading");
   }
 
   /**
@@ -162,14 +165,25 @@ export class GameController {
     this.running = false;
     this.ui.cancelAsk();
     this.ui.clear();
-    this.ui.displayPrompt("Thank you for playing.");
+    this.ui.setStatus({ room: "END", sanity: null });
+    this.ui.setPlaceholder("");
+    this.ui.displayLine("Thank you for playing.", "heading");
   }
 
   /**
-   * Port of C++ updateSanity — clamp to 0..100.
+   * Port of C++ updateSanity — clamp to 0..100 and refresh status bar.
    */
   private updateSanity(player: Player, amount: number): void {
-    player.setSanity(Math.max(0, Math.min(100, player.getSanity() + amount)));
+    player.setSanity(player.getSanity() + amount);
+    this.syncSanityStatus(player);
+  }
+
+  /** Keep LOC/SAN strip accurate after any sanity change. */
+  private syncSanityStatus(player: Player = this.player!): void {
+    if (!player) {
+      return;
+    }
+    this.ui.setStatus({ sanity: player.getSanity() });
   }
 
   /**
@@ -199,7 +213,7 @@ export class GameController {
 
   /** After each 9s wait: check game-over, then drain again. */
   private sanitySequenceTick(): void {
-    if (!this.running || !this.player) {
+    if (!this.running || !this.player || this.outcomeSettled) {
       this.stopSanitySequence();
       return;
     }
@@ -217,18 +231,22 @@ export class GameController {
    * Drain 1 sanity (latest C++). Optional UI line must not call ask() (print-only).
    */
   private drainSanityTick(announce: boolean): void {
-    if (!this.player) {
+    if (!this.player || this.outcomeSettled) {
       return;
     }
     this.player.setSanity(this.player.getSanity() - 1);
+    this.syncSanityStatus(this.player);
+
     if (announce) {
       // Non-blocking: print while ask() may be waiting.
-      this.ui.displayPrompt(
+      this.ui.displayLine(
         `Your mind frays... Sanity: ${this.player.getSanity()}`,
+        "alert",
       );
-      if (this.player.getSanity() < 2) {
-        this.endGame();
-      }
+    }
+
+    if (this.player.getSanity() < 2) {
+      this.endGame();
     }
   }
 
@@ -241,8 +259,9 @@ export class GameController {
         if (!this.running) {
           return;
         }
-        this.ui.displayPrompt(
+        this.ui.displayLine(
           "The monster is approching, you must hide, hurry!",
+          "alert",
         );
       },
       onTriggered: () => {
@@ -298,6 +317,7 @@ export class GameController {
     }
 
     this.player.setSanity(this.player.getSanity() - 30);
+    this.syncSanityStatus(this.player);
     this.ui.clear();
 
     if (this.player.getSanity() <= 0) {
@@ -354,6 +374,8 @@ export class GameController {
       return;
     }
 
+    let lastShownRoom: string | null = null;
+
     while (this.running) {
       if (this.grabPromise) {
         await this.grabPromise;
@@ -368,30 +390,31 @@ export class GameController {
       // Stay protected while lingering in a hide room.
       this.isInProtectedAction = currentRoom.getIsSafe();
 
-      this.ui.displayPrompt("");
-      this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
-      this.ui.displayPrompt(`— ${currentRoom.getName()} —`);
+      let description: string;
+      let jumbleSanity = true;
       if (currentRoom.getHasConditionalDescription()) {
-        // C++ conditional (Sight) path is not jumbled.
-        this.ui.displayPrompt(
-          currentRoom.conditionalDescription(
-            player.getInventory(),
-            createSight(),
-          ),
+        jumbleSanity = false;
+        description = currentRoom.conditionalDescription(
+          player.getInventory(),
+          createSight(),
         );
       } else {
-        // C++ AmendDescription via displayPrompt(text, sanity) — jumble at ≤35.
-        this.ui.displayPrompt(
-          currentRoom.amendDescription(),
-          player.getSanity(),
-        );
+        description = currentRoom.amendDescription();
       }
-      this.ui.displayPrompt("");
-      presentExits(this.ui, currentRoom);
-      this.ui.displayPrompt("");
-      this.ui.displayPrompt(
-        "You cant contain your curiosity and have the urge to INSPECT the items in the room. (type 'INVENTORY' to open inventory. Type 'QUIT' to exit the game)",
-      );
+
+      const roomName = currentRoom.getName();
+      if (lastShownRoom !== null && lastShownRoom !== roomName) {
+        await this.ui.blackout(230);
+      }
+
+      this.ui.displayRoomTurn({
+        roomName,
+        sanity: player.getSanity(),
+        description,
+        exits: currentRoom.listExits(),
+        jumbleSanity,
+      });
+      lastShownRoom = roomName;
 
       if (this.grabPromise) {
         await this.grabPromise;
@@ -418,7 +441,12 @@ export class GameController {
 
       if (command === "SANITY") {
         this.ui.clear();
-        this.ui.displayPrompt(`SANITY: ${player.getSanity()}`);
+        this.syncSanityStatus(player);
+        this.ui.displayLine(`SANITY: ${player.getSanity()}`, "alert");
+        this.ui.displayLine(
+          "Go low enough and your vision may become sCraMbLEd. Any lower and you will die.",
+          "dim",
+        );
         await this.ui.sleep(500);
         this.ui.clear();
         continue;
@@ -433,6 +461,7 @@ export class GameController {
 
       if (command === "INVENTORY") {
         this.ui.clear();
+        this.ui.setPlaceholder("");
         await this.withProtectedAction(() => this.viewInventory(player));
         if (!this.running) {
           return;
@@ -442,6 +471,7 @@ export class GameController {
 
       if (command === "INSPECT") {
         this.ui.clear();
+        this.ui.setPlaceholder("");
         await this.withProtectedAction(() => this.handleInspect(player));
         if (!this.running) {
           return;
@@ -489,8 +519,9 @@ export class GameController {
       }
 
       this.ui.clear();
-      this.ui.displayPrompt(
+      this.ui.displayLine(
         "You tried to choose your option but you couldn't move your body. It seems like there is an unforeseen force telling you can't perform that action..You look around again",
+        "alert",
       );
     }
   }
@@ -1442,10 +1473,11 @@ export class GameController {
       gameAudio.play("pillBottle");
       this.updateSanity(player, item.getValue());
       player.useItem("BOTTLE OF PILLS");
-      this.ui.displayPrompt(
+      this.ui.displayLine(
         "You used the bottle of sanity pills. The world makes a bit more sense again.",
+        "system",
       );
-      this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
+      this.ui.displayLine(`Sanity Level: ${player.getSanity()}`, "alert");
     }
   }
 }
