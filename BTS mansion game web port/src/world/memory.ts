@@ -78,7 +78,6 @@ export function buildMemoryWing(): Map<string, Room> {
         "MEMORY OF THE STUDY",
         "THE LIFT",
         "THE CONSCIOUS",
-        "RITUAL ROOM",
       ],
       items: [],
     }),

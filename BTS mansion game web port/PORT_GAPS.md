@@ -25,7 +25,7 @@ Web port: this folder. Execute revisions in order **R2 → R10** (see below).
 | Sanity jumble UI | `displayPrompt(text, sanity)` | Jumble when sanity ≤ 35 |
 | `SANITY` command | Game loop | Quick sanity readout |
 | Backstory | `displayBackstory` | Ported on START (R8) |
-| Audio | `PlaySound` + item `soundFileName` | Browser `Audio` adaptation (R9) |
+| Audio | `PlaySound` + item `soundFileName` | Ported HTMLAudioElement + mute (R9) |
 
 ---
 
@@ -90,8 +90,8 @@ Clue sources: ritual letters → **MALUM**; journals / newspaper → **HENRY**.
 - [x] **R6** Ritual letters, C4 teleports, drop fake 5-candle win  
 - [x] **R7** `endingSequence` (HENRY / MALUM / bad)  
 - [x] **R8** Copy/backstory/string sync  
-- [ ] **R9** Audio (optional)  
-- [ ] **R10** Full playthrough softlock sweep  
+- [x] **R9** Audio (optional)  
+- [x] **R10** Full playthrough softlock sweep  
 
 ---
 

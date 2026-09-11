@@ -33,6 +33,7 @@ import {
 import { MonsterTimer, MONSTER_GRAB_ART } from "./monster";
 import { GOOD_ENDING, NEUTRAL_ENDING, BAD_ENDING } from "./endings";
 import { BACKSTORY } from "./backstory";
+import { gameAudio } from "./audio";
 
 /**
  * GameController — mansion world + interactions + monster timer (R4).
@@ -274,6 +275,7 @@ export class GameController {
 
     this.ui.cancelAsk();
     this.ui.clear();
+    gameAudio.play("jumpscare");
     this.ui.displayPrompt(
       "A shadowy monster with elongated limbs grabs you, as the shadows encapsulating this monster consume you and all you can feel is its cold embrace.",
     );
@@ -505,6 +507,7 @@ export class GameController {
       if (!this.kitchenDoorOpen) {
         this.ui.displayPrompt("You open the door to the foyer.");
         this.kitchenDoorOpen = true;
+        gameAudio.play("doorOpen");
       }
       const foyer = this.rooms.get("FOYER");
       if (foyer) {
@@ -528,6 +531,7 @@ export class GameController {
         const kitchen = this.rooms.get("KITCHEN");
         if (kitchen) {
           this.ui.displayPrompt("You pass through the open door to the kitchen.");
+          gameAudio.play("doorOpen");
           player.setRoom(kitchen);
         }
       } else {
@@ -541,6 +545,7 @@ export class GameController {
       if (!this.diningHallDoorOpen) {
         this.ui.displayPrompt("You open the door to the lounge.");
         this.diningHallDoorOpen = true;
+        gameAudio.play("doorOpen");
       }
       const lounge = this.rooms.get("LOUNGE");
       if (lounge) {
@@ -564,6 +569,7 @@ export class GameController {
         const dining = this.rooms.get("DINING HALL");
         if (dining) {
           this.ui.displayPrompt("You pass through the open door to the dining hall.");
+          gameAudio.play("doorOpen");
           player.setRoom(dining);
         }
       } else {
@@ -579,6 +585,10 @@ export class GameController {
     }
 
     if (command === "PORTAL") {
+      // C++ only handles PORTAL when it is in the current room's options.
+      if (!currentRoom.getRoomOptions().includes("PORTAL")) {
+        return false;
+      }
       this.ui.clear();
       this.handlePortal(player);
       return true;
@@ -588,12 +598,13 @@ export class GameController {
   }
 
   private handlePortal(player: Player): void {
+    gameAudio.play("teleportUpstairs");
     if (player.getRoomName() === "UPSTAIRS") {
-      const foyer = this.rooms.get("FOYER");
-      if (foyer) {
-        player.setRoom(foyer);
+      const ritual = this.rooms.get("RITUAL ROOM");
+      if (ritual) {
+        player.setRoom(ritual);
         this.ui.displayPrompt(
-          "You step through the portal and find yourself back in the foyer (Room A).",
+          "You step through the portal and find yourself back to the Ritual Room",
         );
       }
       return;
@@ -725,8 +736,10 @@ export class GameController {
       return;
     }
 
+    const previousRoom = currentRoom.getName();
     const destination = this.rooms.get(command);
     if (destination) {
+      gameAudio.playMovement(previousRoom, command);
       this.ui.clear();
       player.setRoom(destination);
       return;
@@ -757,6 +770,7 @@ export class GameController {
 
       const playerKey = player.searchForKey(door.getDoorKeyID());
       if (door.getDoorKeyID() === playerKey && command === door.getDoorName()) {
+        gameAudio.playDoorUnlock(command);
         if (openMessage) {
           this.ui.displayPrompt(openMessage);
         }
@@ -792,12 +806,14 @@ export class GameController {
       player.useItemWithId("CANDLE", "C1");
       this.ui.displayPrompt("You have placed a candle.");
       currentRoom.addCandle();
+      gameAudio.play("monsterCandleRoar");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       await this.ui.sleep(10_000);
 
       this.ui.displayPrompt(
         "As you place the candle, a hidden tunnel opens, leading to the kitchen!",
       );
+      gameAudio.play("tunnelOpening");
       this.ui.displayPrompt("A significant symbol appears in your path:");
       this.ui.displayPrompt("M");
 
@@ -814,10 +830,12 @@ export class GameController {
       player.useItemWithId("CANDLE", "C2");
       this.ui.displayPrompt("You have placed the 2nd candle.");
       currentRoom.addCandle();
+      gameAudio.play("monsterCandleRoar");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       await this.ui.sleep(12_000);
 
       this.ui.displayPrompt("As you place the candle, a portal is revealed!");
+      gameAudio.play("portalOpening");
       this.ui.displayPrompt("A significant symbol appears in your path:");
       this.ui.displayPrompt("A");
 
@@ -834,6 +852,7 @@ export class GameController {
       this.ui.displayPrompt("You place the 3rd candle.");
       player.useItemWithId("CANDLE", "C3");
       currentRoom.addCandle();
+      gameAudio.play("monsterCandleRoar");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       await this.ui.sleep(12_000);
 
@@ -847,6 +866,7 @@ export class GameController {
     if (player.inInventory("CANDLE", "C4")) {
       this.ui.displayPrompt("You place the 4th candle.");
       currentRoom.addCandle();
+      gameAudio.play("monsterCandleRoar");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       await this.ui.sleep(12_000);
 
@@ -871,6 +891,7 @@ export class GameController {
       this.ui.displayPrompt("It is final...");
       player.useItemWithId("CANDLE", "C5");
       currentRoom.addCandle();
+      gameAudio.play("monsterCandleRoar");
       this.ui.displayPentacle(currentRoom.getCandleValue());
       await this.ui.sleep(12_000);
 
@@ -1053,6 +1074,7 @@ export class GameController {
 
     const solved = await this.mirrorPuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       this.ui.displayPrompt(
         "You solved the Mirror Puzzle! You recieved a half of a key in your inventory.",
       );
@@ -1075,6 +1097,7 @@ export class GameController {
 
     const solved = await this.fountainPuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       this.ui.displayPrompt("You solved the Fountain Puzzle!");
       player.addItem(createHolyWater());
     }
@@ -1098,6 +1121,7 @@ export class GameController {
     this.ui.clear();
     const solved = await this.mazePuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       this.ui.displayPrompt("You solved the Maze Puzzle!");
       this.ui.displayPrompt(
         "You find a map of the maze at the end of this sequence of symbols. You pick it up to navigate the maze.",
@@ -1128,6 +1152,7 @@ export class GameController {
 
     const solved = await this.galleryPuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       player.addItem(createGalleryHalfKey());
       this.tryCombineMasterKey(player);
     }
@@ -1158,6 +1183,7 @@ export class GameController {
     // GameController post-C5 sequence (actual teleport).
     this.ui.clear();
     this.ui.displayPrompt("The monster roars awake.");
+    gameAudio.play("monsterCandleRoar");
     await this.ui.sleep(9000);
     this.ui.displayPrompt(
       "You recieve the final candle, its waiting to be set down on the pentagrams edge",
@@ -1182,6 +1208,7 @@ export class GameController {
 
     const solved = await this.memoryPuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       this.ui.displayPrompt(
         "The memories react positively to your answers, they break free from the crystal tank and attack your body, ripping out a memory of your own, they place it in your hand and go back into the tank",
       );
@@ -1201,6 +1228,7 @@ export class GameController {
 
     const solved = await this.greaterLibraryPuzzle.runPuzzle(this.ui);
     if (solved) {
+      gameAudio.play("puzzleSuccess");
       player.addItem(createStudyKey());
     }
   }
@@ -1307,6 +1335,7 @@ export class GameController {
     const safeInput = (await this.ui.userInput()).trim();
 
     if (safeInput === "8691") {
+      gameAudio.play("safeOpening");
       this.ui.displayPrompt(
         "You entered the correct passcode! Safe is now open and there's a key",
       );
@@ -1355,6 +1384,7 @@ export class GameController {
     this.syncRoom(currentRoom);
     player.setRoom(currentRoom);
 
+    gameAudio.playPickupFor(itemName);
     this.ui.clear();
     this.ui.displayPrompt(`You picked up ${itemName}.`);
     this.ui.displayPrompt("-----------");
@@ -1369,6 +1399,7 @@ export class GameController {
       this.ui.displayPrompt(
         "A mysterious portal materializes before you, shimmering with eldritch energy...",
       );
+      gameAudio.play("portalOpening");
       await this.ui.sleep(2000);
       this.ui.displayPrompt(
         "The portal pulls you in... You are heading to the Ritual Room.",
@@ -1408,6 +1439,7 @@ export class GameController {
     this.ui.displayPrompt(`${item.getName()}: ${item.getDescription()}`);
 
     if (item.getName() === "BOTTLE OF PILLS") {
+      gameAudio.play("pillBottle");
       this.updateSanity(player, item.getValue());
       player.useItem("BOTTLE OF PILLS");
       this.ui.displayPrompt(
