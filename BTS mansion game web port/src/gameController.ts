@@ -170,7 +170,7 @@ export class GameController {
 
   /**
    * Port of C++ sanitySequence (std::thread → setInterval).
-   * C++: drain 2, sleep 9s, if sanity < 2 endGame, repeat.
+   * Latest C++: drain 1, sleep 9s, if sanity < 2 endGame, repeat.
    */
   private startSanitySequence(): void {
     this.stopSanitySequence();
@@ -210,13 +210,13 @@ export class GameController {
   }
 
   /**
-   * Drain 2 sanity. Optional UI line must not call ask() (print-only).
+   * Drain 1 sanity (latest C++). Optional UI line must not call ask() (print-only).
    */
   private drainSanityTick(announce: boolean): void {
     if (!this.player) {
       return;
     }
-    this.player.setSanity(this.player.getSanity() - 2);
+    this.player.setSanity(this.player.getSanity() - 1);
     if (announce) {
       // Non-blocking: print while ask() may be waiting.
       this.ui.displayPrompt(
@@ -367,6 +367,7 @@ export class GameController {
       this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
       this.ui.displayPrompt(`— ${currentRoom.getName()} —`);
       if (currentRoom.getHasConditionalDescription()) {
+        // C++ conditional (Sight) path is not jumbled.
         this.ui.displayPrompt(
           currentRoom.conditionalDescription(
             player.getInventory(),
@@ -374,7 +375,11 @@ export class GameController {
           ),
         );
       } else {
-        this.ui.displayPrompt(currentRoom.amendDescription());
+        // C++ AmendDescription via displayPrompt(text, sanity) — jumble at ≤35.
+        this.ui.displayPrompt(
+          currentRoom.amendDescription(),
+          player.getSanity(),
+        );
       }
       this.ui.displayPrompt("");
       presentExits(this.ui, currentRoom);
@@ -404,6 +409,14 @@ export class GameController {
       if (command === "QUIT") {
         this.endGame();
         return;
+      }
+
+      if (command === "SANITY") {
+        this.ui.clear();
+        this.ui.displayPrompt(`SANITY: ${player.getSanity()}`);
+        await this.ui.sleep(500);
+        this.ui.clear();
+        continue;
       }
 
       if (command === "ESCAPE") {
