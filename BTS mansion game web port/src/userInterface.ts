@@ -72,4 +72,9 @@ export class UserInterface {
   sleep(ms: number): Promise<void> {
     return this.terminal.sleep(ms);
   }
+
+  /** Unblock a waiting ask() (sanity game-over / quit). */
+  cancelAsk(): void {
+    this.terminal.cancelAsk();
+  }
 }

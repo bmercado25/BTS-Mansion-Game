@@ -9,6 +9,8 @@ export type Terminal = {
   printPre: (block: string) => void;
   clear: () => void;
   ask: (prompt?: string) => Promise<string>;
+  /** Resolve a pending ask() without waiting for submit (e.g. game over). */
+  cancelAsk: () => void;
   sleep: (ms: number) => Promise<void>;
 };
 
@@ -72,6 +74,15 @@ export function createTerminal(root: HTMLElement): Terminal {
     });
   };
 
+  const cancelAsk = (): void => {
+    if (!pending) {
+      return;
+    }
+    const current = pending;
+    pending = null;
+    current.resolve("");
+  };
+
   form.addEventListener("submit", (event) => {
     event.preventDefault();
 
@@ -97,5 +108,5 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   input.focus();
 
-  return { print, printPre, clear, ask, sleep };
+  return { print, printPre, clear, ask, cancelAsk, sleep };
 }

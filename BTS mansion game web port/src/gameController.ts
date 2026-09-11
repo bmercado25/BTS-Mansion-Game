@@ -47,6 +47,8 @@ export class GameController {
   private chantPuzzle = new ChantPuzzle();
   private memoryPuzzle = new MemoryPuzzle();
   private memoryGobletIsActive = false;
+  /** Browser stand-in for C++ sanitySequence thread. */
+  private sanityTimerId: ReturnType<typeof setInterval> | null = null;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -84,14 +86,16 @@ export class GameController {
     this.ui.displayPrompt(
       "Unfortunately, it is only a matter of time before you completely lose it. Consume SANITY PILLS to increase your sanity.",
     );
-    this.ui.displayPrompt("(Sanity timer not active yet — Phase 8.)");
     this.ui.displayPrompt("");
 
+    this.startSanitySequence();
     await this.gameLoop();
   }
 
   endGame(): void {
+    this.stopSanitySequence();
     this.running = false;
+    this.ui.cancelAsk();
     this.ui.clear();
     this.ui.displayPrompt(
       "Your world disappears around you. You are still aware but there is nothing,",
@@ -99,6 +103,73 @@ export class GameController {
     this.ui.displayPrompt("like someone pulled the plug on your brain - Am I dead?");
     this.ui.displayPrompt("...You wonder if this will end.");
     this.ui.displayPrompt("Thank you for playing");
+  }
+
+  /**
+   * Port of C++ updateSanity — clamp to 0..100.
+   */
+  private updateSanity(player: Player, amount: number): void {
+    player.setSanity(Math.max(0, Math.min(100, player.getSanity() + amount)));
+  }
+
+  /**
+   * Port of C++ sanitySequence (std::thread → setInterval).
+   * C++: drain 2, sleep 9s, if sanity < 2 endGame, repeat.
+   */
+  private startSanitySequence(): void {
+    this.stopSanitySequence();
+    if (!this.player) {
+      return;
+    }
+
+    // Immediate first drain (C++ thread drains before first sleep).
+    this.drainSanityTick(false);
+
+    this.sanityTimerId = setInterval(() => {
+      this.sanitySequenceTick();
+    }, 9000);
+  }
+
+  private stopSanitySequence(): void {
+    if (this.sanityTimerId !== null) {
+      clearInterval(this.sanityTimerId);
+      this.sanityTimerId = null;
+    }
+  }
+
+  /** After each 9s wait: check game-over, then drain again. */
+  private sanitySequenceTick(): void {
+    if (!this.running || !this.player) {
+      this.stopSanitySequence();
+      return;
+    }
+
+    // C++ checks after the sleep.
+    if (this.player.getSanity() < 2) {
+      this.endGame();
+      return;
+    }
+
+    this.drainSanityTick(true);
+  }
+
+  /**
+   * Drain 2 sanity. Optional UI line must not call ask() (print-only).
+   */
+  private drainSanityTick(announce: boolean): void {
+    if (!this.player) {
+      return;
+    }
+    this.player.setSanity(this.player.getSanity() - 2);
+    if (announce) {
+      // Non-blocking: print while ask() may be waiting.
+      this.ui.displayPrompt(
+        `Your mind frays... Sanity: ${this.player.getSanity()}`,
+      );
+      if (this.player.getSanity() < 2) {
+        this.endGame();
+      }
+    }
   }
 
   private syncRoom(room: Room): void {
@@ -135,6 +206,9 @@ export class GameController {
       );
 
       const command = (await this.ui.userInput()).trim().toUpperCase();
+      if (!this.running) {
+        return;
+      }
 
       if (command === "QUIT") {
         this.endGame();
@@ -926,9 +1000,7 @@ export class GameController {
     this.ui.displayPrompt(`${item.getName()}: ${item.getDescription()}`);
 
     if (item.getName() === "BOTTLE OF PILLS") {
-      // Match C++ inventory use behavior (sanity restore); timer arrives in Phase 8.
-      const amount = item.getValue();
-      player.setSanity(Math.max(0, Math.min(100, player.getSanity() + amount)));
+      this.updateSanity(player, item.getValue());
       player.useItem("BOTTLE OF PILLS");
       this.ui.displayPrompt(
         "You used the bottle of sanity pills. The world makes a bit more sense again.",
