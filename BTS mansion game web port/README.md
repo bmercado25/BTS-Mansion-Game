@@ -5,21 +5,26 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 4 status
+## Phase 5a status
 
-Mini game loop (`GameController`) with a tiny world:
+Downstairs world ported into `GameController`:
 
-- **FOYER** ↔ **LOUNGE** (RUSTY KEY)
-- Locked **DOOR** → **LIBRARY** (needs key `BBBB`)
+- FOYER, LOUNGE, LIBRARY, GREATER LIBRARY, STUDY
+- HIDDEN SECTION, RITUAL ROOM
+- DINING HALL, KITCHEN
 
-Commands: room/exit names, `INSPECT`, `PICKUP`, `INVENTORY`, `QUIT`
+Locks / keys: `RUSTY KEY` → DOOR, `OLD BOOK` → BOOKSHELF, dining safe `8691` → `DINING HALL KEY` → GREATER LIBRARY DOOR, study gate word `YDDID`
 
-## Critical path
+Stubbed: upstairs / PORTAL / garden / real puzzle modules
 
-1. `START`
-2. `LOUNGE` → `INSPECT` / `PICKUP` → `RUSTY KEY`
-3. `FOYER` → `DOOR` (unlock) → `LIBRARY`
-4. `INVENTORY` · `QUIT`
+## Suggested downstairs path
+
+1. `START` in FOYER  
+2. `LOUNGE` → pick up `RUSTY KEY`  
+3. `FOYER` → `DOOR` → `LIBRARY`  
+4. Pick up `OLD BOOK` → `BOOKSHELF` → `HIDDEN SECTION` → candle  
+5. `DINING HALL` via lounge door → safe `8691` → `GREATER LIBRARY DOOR`  
+6. `PUZZLE` / `YDDID` → `STUDY` → second candle → `RITUAL ROOM`
 
 ## Run
 
@@ -28,5 +33,3 @@ cd "BTS mansion game web port"
 npm install
 npm run dev
 ```
-
-Then open the URL Vite prints (usually `http://localhost:5173`).

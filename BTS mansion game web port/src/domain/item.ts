@@ -2,8 +2,12 @@
  * Optional interaction hook stub (full InteractClass arrives in a later phase).
  */
 export type InteractionHook = {
-  /** Placeholder until InteractClass is ported. */
-  kind?: string;
+  /** Special handler id used by GameController. */
+  kind?: "message" | "safe" | "puzzle" | "stub";
+  /** Prompt shown when inspecting / interacting (C++ inputMessage). */
+  inputMessage?: string;
+  /** Result text after interacting (C++ interactMessage). */
+  outputMessage?: string;
 };
 
 export type ItemOptions = {

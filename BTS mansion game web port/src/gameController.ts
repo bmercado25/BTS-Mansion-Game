@@ -1,7 +1,5 @@
 import type { UserInterface } from "./userInterface";
 import {
-  Door,
-  Item,
   PickUpItem,
   Player,
   Room,
@@ -9,36 +7,50 @@ import {
   presentInventory,
   presentRoomItems,
 } from "./domain";
+import { buildDownstairsWorld, createDiningHallKey } from "./world/downstairs";
 
 /**
- * Minimal GameController-style loop (Phase 4).
- * Tiny world: FOYER ↔ LOUNGE, locked DOOR → LIBRARY.
+ * GameController — Phase 5a downstairs world + command loop.
  */
 export class GameController {
   private readonly ui: UserInterface;
   private rooms = new Map<string, Room>();
   private player: Player | null = null;
   private running = false;
+  private kitchenDoorOpen = false;
+  private diningHallDoorOpen = false;
+  private studyPuzzleSolved = false;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
   }
 
   async startGame(): Promise<void> {
-    this.buildMiniWorld();
+    this.rooms = buildDownstairsWorld();
+    this.kitchenDoorOpen = false;
+    this.diningHallDoorOpen = false;
+    this.studyPuzzleSolved = false;
+
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
-      throw new Error("FOYER missing from mini world.");
+      throw new Error("FOYER missing from downstairs world.");
     }
 
     this.player = new Player(foyer);
     this.running = true;
 
     this.ui.clear();
-    this.ui.displayPrompt("You wake in a dim foyer. Something is wrong with this place.");
     this.ui.displayPrompt(
-      "INSTRUCTIONS: Any word in ALL CAPS (INSPECT, PICKUP, LOUNGE, DOOR, …) is a command.",
+      "INSTRUCTIONS: Any word that is in all caps, such as INSPECT, PICKUP or LOUNGE, is a keyword and can be inputted for an action",
     );
+    this.ui.displayPrompt("");
+    this.ui.displayPrompt(
+      "It's always important to stay sane in such a stressful situation. The lower your sanity gets, the less you'll understand what is going on...",
+    );
+    this.ui.displayPrompt(
+      "Unfortunately, it is only a matter of time before you completely lose it. Consume SANITY PILLS to increase your sanity.",
+    );
+    this.ui.displayPrompt("(Sanity timer not active yet — Phase 8.)");
     this.ui.displayPrompt("");
 
     await this.gameLoop();
@@ -55,49 +67,8 @@ export class GameController {
     this.ui.displayPrompt("Thank you for playing");
   }
 
-  private buildMiniWorld(): void {
-    this.rooms.clear();
-
-    const rustyKey = Item.key(
-      "RUSTY KEY",
-      "a RUSTY KEY that looks like it might fit an old lock",
-      "BBBB",
-    );
-
-    const libraryDoor = new Door(
-      true,
-      "BBBB",
-      "The ornate wooden DOOR stands open. Beyond it, the LIBRARY waits.",
-      "DOOR",
-    );
-
-    const foyer = new Room({
-      description:
-        "You enter the foyer. Faded wallpaper, grim portraits, and a chill in the air. There appears to be an ornate wooden DOOR that is locked.",
-      name: "FOYER",
-      exits: ["LOUNGE", "DOOR"],
-      doors: [libraryDoor],
-      items: [],
-    });
-
-    const lounge = new Room({
-      description:
-        "You enter the lounge. A staircase is blocked by black sludge. Something metallic glints nearby.",
-      name: "LOUNGE",
-      exits: ["FOYER"],
-      items: [rustyKey],
-    });
-
-    const library = new Room({
-      description: "You enter the library, filled to the brim with bookshelves.",
-      name: "LIBRARY",
-      exits: ["FOYER"],
-      items: [],
-    });
-
-    this.rooms.set("FOYER", foyer);
-    this.rooms.set("LOUNGE", lounge);
-    this.rooms.set("LIBRARY", library);
+  private syncRoom(room: Room): void {
+    this.rooms.set(room.getName(), room);
   }
 
   private async gameLoop(): Promise<void> {
@@ -110,13 +81,14 @@ export class GameController {
       const currentRoom = player.getRoom();
 
       this.ui.displayPrompt("");
+      this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
       this.ui.displayPrompt(`— ${currentRoom.getName()} —`);
-      this.ui.displayPrompt(currentRoom.getDescription());
+      this.ui.displayPrompt(currentRoom.amendDescription());
       this.ui.displayPrompt("");
       presentExits(this.ui, currentRoom);
       this.ui.displayPrompt("");
       this.ui.displayPrompt(
-        "You feel the urge to INSPECT the items in the room. (Type INVENTORY to open inventory. Type QUIT to exit.)",
+        "You cant contain your curiosity and have the urge to INSPECT the items in the room. (type 'INVENTORY' to open inventory. Type 'QUIT' to exit the game)",
       );
 
       const command = (await this.ui.userInput()).trim().toUpperCase();
@@ -144,6 +116,17 @@ export class GameController {
         continue;
       }
 
+      if (command === "CANDLE" && currentRoom.getName() === "RITUAL ROOM") {
+        this.ui.clear();
+        this.handleRitualCandle(player, currentRoom);
+        continue;
+      }
+
+      // Special door / passage commands (may or may not be in exit list wording)
+      if (await this.handleSpecialMovement(player, currentRoom, command)) {
+        continue;
+      }
+
       const exits = currentRoom.getRoomOptions();
       if (exits.includes(command)) {
         await this.handleExitCommand(player, currentRoom, command);
@@ -152,9 +135,103 @@ export class GameController {
 
       this.ui.clear();
       this.ui.displayPrompt(
-        "You tried to choose your option but you couldn't move your body. It seems like there is an unforeseen force telling you can't perform that action.. You look around again",
+        "You tried to choose your option but you couldn't move your body. It seems like there is an unforeseen force telling you can't perform that action..You look around again",
       );
     }
+  }
+
+  private async handleSpecialMovement(
+    player: Player,
+    currentRoom: Room,
+    command: string,
+  ): Promise<boolean> {
+    const roomName = currentRoom.getName();
+
+    if (command === "KITCHEN DOOR" && roomName === "KITCHEN") {
+      this.ui.clear();
+      if (!this.kitchenDoorOpen) {
+        this.ui.displayPrompt("You open the door to the foyer.");
+        this.kitchenDoorOpen = true;
+      }
+      const foyer = this.rooms.get("FOYER");
+      if (foyer) {
+        const options = foyer.getRoomOptions().filter((o) => o !== "KITCHEN DOOR");
+        if (!options.includes("KITCHEN")) {
+          options.push("KITCHEN");
+        }
+        foyer.setRoomOptions(options);
+        this.syncRoom(foyer);
+        player.setRoom(foyer);
+      }
+      this.ui.displayPrompt(
+        "You are now in the foyer. You can use the 'KITCHEN' command to return to the kitchen.",
+      );
+      return true;
+    }
+
+    if (command === "KITCHEN DOOR" && roomName === "FOYER") {
+      this.ui.clear();
+      if (this.kitchenDoorOpen) {
+        const kitchen = this.rooms.get("KITCHEN");
+        if (kitchen) {
+          this.ui.displayPrompt("You pass through the open door to the kitchen.");
+          player.setRoom(kitchen);
+        }
+      } else {
+        this.ui.displayPrompt("The door to the kitchen is locked from this side.");
+      }
+      return true;
+    }
+
+    if (command === "DINING HALL DOOR" && roomName === "DINING HALL") {
+      this.ui.clear();
+      if (!this.diningHallDoorOpen) {
+        this.ui.displayPrompt("You open the door to the lounge.");
+        this.diningHallDoorOpen = true;
+      }
+      const lounge = this.rooms.get("LOUNGE");
+      if (lounge) {
+        const options = lounge.getRoomOptions().filter((o) => o !== "DINING HALL DOOR");
+        if (!options.includes("DINING HALL")) {
+          options.push("DINING HALL");
+        }
+        lounge.setRoomOptions(options);
+        this.syncRoom(lounge);
+        player.setRoom(lounge);
+      }
+      this.ui.displayPrompt(
+        "You are now in the lounge. You can use the 'DINING HALL' command to return to the dining hall.",
+      );
+      return true;
+    }
+
+    if (command === "DINING HALL" && roomName === "LOUNGE") {
+      this.ui.clear();
+      if (this.diningHallDoorOpen) {
+        const dining = this.rooms.get("DINING HALL");
+        if (dining) {
+          this.ui.displayPrompt("You pass through the open door to the dining hall.");
+          player.setRoom(dining);
+        }
+      } else {
+        this.ui.displayPrompt("The door to the dining hall is locked from this side.");
+      }
+      return true;
+    }
+
+    if (command === "DINING HALL DOOR" && roomName === "LOUNGE") {
+      this.ui.clear();
+      this.ui.displayPrompt("The DINING HALL DOOR is locked from this side");
+      return true;
+    }
+
+    if (command === "PORTAL") {
+      this.ui.clear();
+      this.ui.displayPrompt("PORTAL leads upstairs — not ported yet (Phase 5b).");
+      return true;
+    }
+
+    return false;
   }
 
   private async handleExitCommand(
@@ -162,13 +239,55 @@ export class GameController {
     currentRoom: Room,
     command: string,
   ): Promise<void> {
-    // Locked door keywords that need a key
     if (command === "DOOR") {
       this.ui.clear();
-      this.handleDoors(player, currentRoom, "LIBRARY", ["LOUNGE", "LIBRARY"], command);
-      // Keep map / player room in sync after mutation
-      this.rooms.set(currentRoom.getName(), currentRoom);
+      this.handleDoors(player, currentRoom, ["LOUNGE", "LIBRARY", "KITCHEN DOOR"], command);
+      this.syncRoom(currentRoom);
       player.setRoom(currentRoom);
+      return;
+    }
+
+    if (command === "BOOKSHELF") {
+      this.ui.clear();
+      this.handleDoors(
+        player,
+        currentRoom,
+        ["FOYER", "HIDDEN SECTION", "GREATER LIBRARY DOOR"],
+        command,
+        "You place the book on the shelf. The Bookshelf begins to move, screeching across the wooden floor. It reveals a staircase leading down to the HIDDEN SECTION.",
+      );
+      this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
+      return;
+    }
+
+    if (command === "GREATER LIBRARY DOOR") {
+      this.ui.clear();
+      this.handleDoors(
+        player,
+        currentRoom,
+        ["FOYER", "HIDDEN SECTION", "LIBRARY", "GREATER LIBRARY"],
+        command,
+      );
+      this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
+      return;
+    }
+
+    if (command === "PUZZLE") {
+      this.ui.clear();
+      await this.handleStudyPuzzle(currentRoom);
+      this.syncRoom(currentRoom);
+      return;
+    }
+
+    // Already handled in special movement, but keep as exit fallback
+    if (
+      command === "KITCHEN DOOR" ||
+      command === "DINING HALL DOOR" ||
+      command === "DINING HALL"
+    ) {
+      await this.handleSpecialMovement(player, currentRoom, command);
       return;
     }
 
@@ -176,7 +295,6 @@ export class GameController {
     if (destination) {
       this.ui.clear();
       player.setRoom(destination);
-      this.ui.displayPrompt(`You move to the ${destination.getName()}.`);
       return;
     }
 
@@ -184,15 +302,12 @@ export class GameController {
     this.ui.displayPrompt("You can't go that way.");
   }
 
-  /**
-   * Port of C++ handleDoors — unlock with matching key, update exits.
-   */
   private handleDoors(
     player: Player,
     currentRoom: Room,
-    _targetRoom: string,
     newRoomOptions: string[],
     command: string,
+    openMessage = "",
   ): void {
     const doors = currentRoom.getDoors();
     let wasKeyFound = false;
@@ -208,6 +323,9 @@ export class GameController {
 
       const playerKey = player.searchForKey(door.getDoorKeyID());
       if (door.getDoorKeyID() === playerKey && command === door.getDoorName()) {
+        if (openMessage) {
+          this.ui.displayPrompt(openMessage);
+        }
         player.useKey(playerKey);
         currentRoom.unlockDoorAt(i);
         currentRoom.setRoomOptions(newRoomOptions);
@@ -220,8 +338,67 @@ export class GameController {
       this.ui.displayPrompt("The door is locked.");
     } else {
       this.ui.displayPrompt("You unlocked the door!");
-      this.ui.displayPrompt("You can now traverse to the LIBRARY.");
     }
+  }
+
+  private async handleStudyPuzzle(currentRoom: Room): Promise<void> {
+    if (this.studyPuzzleSolved) {
+      this.ui.displayPrompt("The puzzle is already solved. You can enter the STUDY.");
+      return;
+    }
+
+    this.ui.displayPrompt(
+      "WORK IN PROGRESS: The door is locked there seems to be a puzzle before entering. Solve this puzzle.",
+    );
+    this.ui.displayPrompt("The secret word is YDDID");
+    const puzzleAnswer = (await this.ui.userInput()).trim().toUpperCase();
+
+    if (puzzleAnswer === "YDDID") {
+      this.ui.displayPrompt("You solved the puzzle you can now enter the study");
+      this.studyPuzzleSolved = true;
+      currentRoom.setRoomOptions(["LIBRARY", "STUDY"]);
+    } else {
+      this.ui.displayPrompt("That is not the correct answer. The door remains locked.");
+    }
+  }
+
+  private handleRitualCandle(player: Player, currentRoom: Room): void {
+    if (player.inInventory("CANDLE", "C1")) {
+      player.useItemWithId("CANDLE", "C1");
+      this.ui.displayPrompt("You have placed a candle");
+      currentRoom.addCandle();
+      this.ui.displayPentacle(currentRoom.getCandleValue());
+      this.ui.displayPrompt(
+        "As you place the candle, a hidden tunnel opens, leading to the kitchen!",
+      );
+      const options = currentRoom.getRoomOptions();
+      if (!options.includes("KITCHEN")) {
+        options.push("KITCHEN");
+        currentRoom.setRoomOptions(options);
+      }
+      this.syncRoom(currentRoom);
+      return;
+    }
+
+    if (player.inInventory("CANDLE", "C2")) {
+      player.useItemWithId("CANDLE", "C2");
+      this.ui.displayPrompt("You have placed a candle");
+      currentRoom.addCandle();
+      this.ui.displayPrompt(
+        "As you place the candle, a portal is revealed!",
+      );
+      this.ui.displayPentacle(currentRoom.getCandleValue());
+      const options = currentRoom.getRoomOptions();
+      if (!options.includes("PORTAL")) {
+        options.push("PORTAL");
+        currentRoom.setRoomOptions(options);
+      }
+      this.syncRoom(currentRoom);
+      this.ui.displayPrompt("(PORTAL / upstairs arrives in Phase 5b.)");
+      return;
+    }
+
+    this.ui.displayPrompt("You do not have a candle");
   }
 
   private async handleInspect(player: Player): Promise<void> {
@@ -242,15 +419,60 @@ export class GameController {
     this.ui.displayPrompt(item.getDescription());
     this.ui.displayPrompt("");
 
-    if (!item.getCanPickUp()) {
+    if (item.getCanPickUp()) {
+      this.ui.displayPrompt("Type PICKUP to pick up the item");
+      const confirm = (await this.ui.userInput()).trim().toUpperCase();
+      if (confirm === "PICKUP") {
+        this.pickUpNamedItem(player, currentRoom, itemName);
+      }
+      return;
+    }
+
+    const interaction = item.getInteraction();
+    if (!interaction) {
       this.ui.displayPrompt("You can't pick that up.");
       return;
     }
 
-    this.ui.displayPrompt("Type PICKUP to pick up the item");
-    const confirm = (await this.ui.userInput()).trim().toUpperCase();
-    if (confirm === "PICKUP") {
-      this.pickUpNamedItem(player, currentRoom, itemName);
+    if (interaction.kind === "safe") {
+      await this.handleSafe(currentRoom);
+      return;
+    }
+
+    if (interaction.kind === "puzzle") {
+      this.ui.displayPrompt("Puzzle not ported yet");
+      return;
+    }
+
+    if (interaction.inputMessage) {
+      this.ui.displayPrompt(interaction.inputMessage);
+      this.ui.displayPrompt("Enter action (INTERACT):");
+      const action = (await this.ui.userInput()).trim().toUpperCase();
+      if (action === "INTERACT" || action === "YES") {
+        this.ui.displayPrompt(interaction.outputMessage ?? "");
+      } else {
+        this.ui.displayPrompt("You walk away.");
+      }
+      return;
+    }
+
+    this.ui.displayPrompt(interaction.outputMessage ?? "Nothing happens.");
+  }
+
+  private async handleSafe(currentRoom: Room): Promise<void> {
+    this.ui.displayPrompt("Enter the 4 digit code");
+    const safeInput = (await this.ui.userInput()).trim();
+
+    if (safeInput === "8691") {
+      this.ui.displayPrompt(
+        "You entered the correct passcode! Safe is now open and there's a key",
+      );
+      currentRoom.removeItemByName("METAL SAFE");
+      currentRoom.addItem(createDiningHallKey());
+      this.syncRoom(currentRoom);
+      presentRoomItems(this.ui, currentRoom);
+    } else {
+      this.ui.displayPrompt("You entered the wrong passcode. Try again");
     }
   }
 
@@ -283,7 +505,7 @@ export class GameController {
 
     const pickup = new PickUpItem(removed);
     pickup.addToInventory(player);
-    this.rooms.set(currentRoom.getName(), currentRoom);
+    this.syncRoom(currentRoom);
     player.setRoom(currentRoom);
 
     this.ui.clear();
@@ -298,7 +520,9 @@ export class GameController {
       return;
     }
 
-    this.ui.displayPrompt("Type the name of an item to get its description, or press Enter to continue.");
+    this.ui.displayPrompt(
+      "Type the name of an item to get its description, or press Enter to continue.",
+    );
     const choice = (await this.ui.userInput()).trim().toUpperCase();
     if (choice === "") {
       return;
@@ -310,6 +534,18 @@ export class GameController {
       return;
     }
 
+    this.ui.clear();
     this.ui.displayPrompt(`${item.getName()}: ${item.getDescription()}`);
+
+    if (item.getName() === "BOTTLE OF PILLS") {
+      // Match C++ inventory use behavior (sanity restore); timer arrives in Phase 8.
+      const amount = item.getValue();
+      player.setSanity(Math.max(0, Math.min(100, player.getSanity() + amount)));
+      player.useItem("BOTTLE OF PILLS");
+      this.ui.displayPrompt(
+        "You used the bottle of sanity pills. The world makes a bit more sense again.",
+      );
+      this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
+    }
   }
 }

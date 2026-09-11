@@ -148,4 +148,25 @@ export class Room {
   getConditionalDescriptionText(): string {
     return this.conditionalRoomDescription;
   }
+
+  /** Port of C++ AmendDescription — base text + item blurbs. */
+  amendDescription(): string {
+    let text = this.roomDescription;
+    const count = this.items.length;
+    if (count === 0) {
+      return text;
+    }
+
+    for (let i = 0; i < count; i++) {
+      const desc = this.items[i]?.getDescription() ?? "";
+      if (i === 0) {
+        text += ` This room contains ${desc}`;
+      } else if (i !== count - 1) {
+        text += `, ${desc}`;
+      } else {
+        text += ` and ${desc}.`;
+      }
+    }
+    return text;
+  }
 }
