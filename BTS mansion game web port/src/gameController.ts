@@ -1,4 +1,5 @@
 import type { UserInterface } from "./userInterface";
+import { Interact } from "./interact";
 import {
   PickUpItem,
   Player,
@@ -18,7 +19,7 @@ import {
 } from "./world";
 
 /**
- * GameController — Phase 5b mansion world (downstairs + upstairs/gallery/master).
+ * GameController — mansion world + interactions (Phase 6).
  */
 export class GameController {
   private readonly ui: UserInterface;
@@ -527,14 +528,15 @@ export class GameController {
       return;
     }
 
-    const interaction = item.getInteraction();
-    if (!interaction) {
-      this.ui.displayPrompt("You can't pick that up.");
+    // C++ GameController special-cases METAL SAFE by name during INSPECT
+    if (itemName === "METAL SAFE" || item.getInteraction()?.kind === "safe") {
+      await this.handleSafe(currentRoom);
       return;
     }
 
-    if (interaction.kind === "safe") {
-      await this.handleSafe(currentRoom);
+    const interaction = item.getInteraction();
+    if (!interaction) {
+      this.ui.displayPrompt("You can't pick that up.");
       return;
     }
 
@@ -543,22 +545,9 @@ export class GameController {
       return;
     }
 
-    if (interaction.inputMessage) {
-      this.ui.displayPrompt(interaction.inputMessage);
-      this.ui.displayPrompt("Enter action (INTERACT):");
-      const action = (await this.ui.userInput()).trim().toUpperCase();
-      if (action === "INTERACT" || action === "YES") {
-        const message = interaction.outputMessage ?? "";
-        for (const line of message.split("\n")) {
-          this.ui.displayPrompt(line);
-        }
-      } else {
-        this.ui.displayPrompt("You walk away.");
-      }
-      return;
-    }
-
-    this.ui.displayPrompt(interaction.outputMessage ?? "Nothing happens.");
+    // Non-puzzle InteractClass::runInteraction() path
+    const interact = Interact.fromHook(this.ui, interaction);
+    await interact.runMessageInteraction();
   }
 
   /**
@@ -668,6 +657,7 @@ export class GameController {
   }
 
   private async handleSafe(currentRoom: Room): Promise<void> {
+    // Matches C++ INSPECT → METAL SAFE branch (code entry after selecting the safe)
     this.ui.displayPrompt("Enter the 4 digit code");
     const safeInput = (await this.ui.userInput()).trim();
 

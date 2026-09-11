@@ -1,5 +1,6 @@
 /**
- * Optional interaction hook stub (full InteractClass arrives in a later phase).
+ * Interaction metadata attached to items (from C++ InteractClass fields).
+ * Non-puzzle flows run through `Interact`; puzzles stay stubbed until Phase 7.
  */
 export type InteractionHook = {
   /** Special handler id used by GameController. */

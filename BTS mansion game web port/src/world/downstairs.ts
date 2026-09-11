@@ -103,7 +103,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to look at dead body 1?",
-      outputMessage: "A dead body with a red shirt numbered 8 — mouth open.",
+      outputMessage: "",
     },
   );
   const deadBody2 = Item.interactable(
@@ -113,7 +113,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to look at dead body 2",
-      outputMessage: "A dead body with a blue shirt numbered 6 — skull cracked open.",
+      outputMessage: "",
     },
   );
   const deadBody3 = Item.interactable(
@@ -123,7 +123,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to look at dead body 3",
-      outputMessage: "A dead body with a green shirt numbered 9 — hands on the floor.",
+      outputMessage: "",
     },
   );
   const deadBody4 = Item.interactable(
@@ -133,7 +133,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to look at dead body 4",
-      outputMessage: "A dead body with a purple shirt numbered 1 — right leg over left.",
+      outputMessage: "",
     },
   );
 
@@ -144,8 +144,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to look at the kitchen counter?",
-      outputMessage:
-        "The counter colors read red, then blue, green, and purple — matching shirts on the dining hall bodies?",
+      outputMessage: "",
     },
   );
 
