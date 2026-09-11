@@ -17,7 +17,7 @@ import {
   createMazeMap,
   createMirrorHalfKey,
 } from "./world";
-import { MirrorPuzzle, FountainPuzzle, MazePuzzle } from "./puzzles";
+import { MirrorPuzzle, FountainPuzzle, MazePuzzle, GalleryPuzzle } from "./puzzles";
 
 /**
  * GameController — mansion world + interactions (Phase 6).
@@ -30,10 +30,10 @@ export class GameController {
   private kitchenDoorOpen = false;
   private diningHallDoorOpen = false;
   private studyPuzzleSolved = false;
-  private galleryPuzzleSolved = false;
   private mirrorPuzzle = new MirrorPuzzle();
   private fountainPuzzle = new FountainPuzzle();
   private mazePuzzle = new MazePuzzle();
+  private galleryPuzzle = new GalleryPuzzle();
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -44,10 +44,10 @@ export class GameController {
     this.kitchenDoorOpen = false;
     this.diningHallDoorOpen = false;
     this.studyPuzzleSolved = false;
-    this.galleryPuzzleSolved = false;
     this.mirrorPuzzle = new MirrorPuzzle();
     this.fountainPuzzle = new FountainPuzzle();
     this.mazePuzzle = new MazePuzzle();
+    this.galleryPuzzle = new GalleryPuzzle();
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -554,6 +554,10 @@ export class GameController {
         await this.handleMazePuzzle(player);
         return;
       }
+      if (interaction.puzzleId === "gallery") {
+        await this.handleGalleryPuzzle(player);
+        return;
+      }
       await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
@@ -625,27 +629,38 @@ export class GameController {
   }
 
   /**
-   * Remaining puzzle modules not ported yet — stubs still award progression items.
+   * Port of InteractClass gallery branch + GalleryPuzzle::runPuzzle().
+   * Asks YES first (unlike mirror/fountain/maze overloaded paths).
+   */
+  private async handleGalleryPuzzle(player: Player): Promise<void> {
+    if (this.galleryPuzzle.isSolved()) {
+      this.ui.displayPrompt("This item seems dormant.");
+      return;
+    }
+
+    this.ui.displayPrompt("Do you want to initiate puzzle? (YES or NO)");
+    const answer = (await this.ui.userInput()).trim().toUpperCase();
+    if (answer !== "YES") {
+      this.ui.displayPrompt("You walk away.");
+      return;
+    }
+
+    const solved = await this.galleryPuzzle.runPuzzle(this.ui);
+    if (solved) {
+      player.addItem(createGalleryHalfKey());
+      this.tryCombineMasterKey(player);
+    }
+  }
+
+  /**
+   * Remaining puzzle modules not ported yet.
    */
   private async handlePuzzleStub(
     player: Player,
     puzzleId: "gallery" | "mirror" | "fountain" | "maze" | undefined,
   ): Promise<void> {
     if (puzzleId === "gallery") {
-      if (this.galleryPuzzleSolved) {
-        this.ui.displayPrompt("This item seems dormant.");
-        return;
-      }
-      this.ui.displayPrompt("Do you want to initiate puzzle? (YES or NO)");
-      const answer = (await this.ui.userInput()).trim().toUpperCase();
-      if (answer !== "YES") {
-        this.ui.displayPrompt("You walk away.");
-        return;
-      }
-      this.ui.displayPrompt("Puzzle not ported yet — granting GALLERY HALF KEY for exploration.");
-      this.galleryPuzzleSolved = true;
-      player.addItem(createGalleryHalfKey());
-      this.tryCombineMasterKey(player);
+      await this.handleGalleryPuzzle(player);
       return;
     }
 
