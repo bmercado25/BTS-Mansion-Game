@@ -5,10 +5,29 @@ export function createCandle5(): Item {
   return Item.key("CANDLE", "The 5th and Final Candle", "C5", true, true);
 }
 
+export function createPlayerMemory(): Item {
+  return Item.key(
+    "YOUR MEMORY",
+    "a glowing orb, reminiscent of your past",
+    "YOURMEMORY",
+    true,
+    true,
+  );
+}
+
+export function createSight(): Item {
+  // C++ expire ctor (pickUp + expire); not a key, not consumable.
+  return new Item({
+    name: "SIGHT",
+    description: "Allows you to see the unseen",
+    canPickUp: true,
+    canExpire: true,
+  });
+}
+
 /**
- * Memory-wing shell + chant letter rooms so CHANTING ALTAR is reachable.
- * Full Sight / MemoryPuzzle content arrives in Phase 7f.
- * Entry opens from the ritual room after placing C4 (C++ has no main-map entrance).
+ * Memory wing: letter rooms (Sight reveals chant words), THE LIFT (MemoryPuzzle),
+ * THE CONSCIOUS (goblet + chant altar). Entry opens from ritual after C4.
  */
 export function buildMemoryWing(): Map<string, Room> {
   const rooms = new Map<string, Room>();
@@ -21,6 +40,18 @@ export function buildMemoryWing(): Map<string, Room> {
       kind: "puzzle",
       puzzleId: "chant",
       inputMessage: "A chanting altar",
+      outputMessage: "Test",
+    },
+  );
+
+  const memoryTank = Item.interactable(
+    "MEMORY TANK",
+    "A crystal tank, that is labeled as MEMORY TANK. There is a hand inprint on the tank",
+    false,
+    {
+      kind: "puzzle",
+      puzzleId: "memory",
+      inputMessage: "A memory tank",
       outputMessage: "Test",
     },
   );
@@ -47,6 +78,7 @@ export function buildMemoryWing(): Map<string, Room> {
         "MEMORY OF THE LIBRARY",
         "MEMORY OF THE GARDEN",
         "MEMORY OF THE STUDY",
+        "THE LIFT",
         "THE CONSCIOUS",
         "RITUAL ROOM",
       ],
@@ -62,6 +94,9 @@ export function buildMemoryWing(): Map<string, Room> {
       name: "MEMORY OF THE FOYER",
       exits: ["MEMORY OF THE MANSION"],
       items: [],
+      hasConditionalDescription: true,
+      conditionalDescription:
+        "You arrive to a broken foyer, you an see a floating statue and doors that are floating away from their hinges. (TEMPORARY TEXT: This is room 4 of 4.) Adjecent to this room is MEMORY OF THE MANSION The letters re-arrange to form TUORUM.",
     }),
   );
 
@@ -73,6 +108,9 @@ export function buildMemoryWing(): Map<string, Room> {
       name: "MEMORY OF THE LIBRARY",
       exits: ["MEMORY OF THE MANSION"],
       items: [],
+      hasConditionalDescription: true,
+      conditionalDescription:
+        "You arrive to a broken library, books and bookshelfs are floating around. (TEMPORARY TEXT: This is room 3 of 4.) The letters re arrange to form: PECCATORUM",
     }),
   );
 
@@ -84,6 +122,9 @@ export function buildMemoryWing(): Map<string, Room> {
       name: "MEMORY OF THE GARDEN",
       exits: ["MEMORY OF THE MANSION"],
       items: [],
+      hasConditionalDescription: true,
+      conditionalDescription:
+        "You arrive to a broken study. (TEMPORARY TEXT: This is room 1 of 4.) Adjecent to this room is MEMORY OF THE MANSION The letters re arrange to form: EXTINGUE.",
     }),
   );
 
@@ -95,6 +136,20 @@ export function buildMemoryWing(): Map<string, Room> {
       name: "MEMORY OF THE STUDY",
       exits: ["MEMORY OF THE MANSION"],
       items: [],
+      hasConditionalDescription: true,
+      conditionalDescription:
+        "You arrive to a broken study. (TEMPORARY TEXT: This is room 2 of 4.) Adjecent to this room is MEMORY OF THE MANSION The letters re-arrange to form FLAMMAM.",
+    }),
+  );
+
+  rooms.set(
+    "THE LIFT",
+    new Room({
+      description:
+        "The beam of energy carries your body up to place that is unrecognizable, it appears to be an attic",
+      name: "THE LIFT",
+      exits: ["MEMORY OF THE MANSION"],
+      items: [memoryTank],
     }),
   );
 

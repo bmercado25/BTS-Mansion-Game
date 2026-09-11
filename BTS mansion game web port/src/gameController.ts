@@ -17,6 +17,8 @@ import {
   createMasterKey,
   createMazeMap,
   createMirrorHalfKey,
+  createPlayerMemory,
+  createSight,
 } from "./world";
 import {
   MirrorPuzzle,
@@ -24,6 +26,7 @@ import {
   MazePuzzle,
   GalleryPuzzle,
   ChantPuzzle,
+  MemoryPuzzle,
 } from "./puzzles";
 
 /**
@@ -42,6 +45,8 @@ export class GameController {
   private mazePuzzle = new MazePuzzle();
   private galleryPuzzle = new GalleryPuzzle();
   private chantPuzzle = new ChantPuzzle();
+  private memoryPuzzle = new MemoryPuzzle();
+  private memoryGobletIsActive = false;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -57,6 +62,8 @@ export class GameController {
     this.mazePuzzle = new MazePuzzle();
     this.galleryPuzzle = new GalleryPuzzle();
     this.chantPuzzle = new ChantPuzzle();
+    this.memoryPuzzle = new MemoryPuzzle();
+    this.memoryGobletIsActive = false;
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -110,7 +117,16 @@ export class GameController {
       this.ui.displayPrompt("");
       this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
       this.ui.displayPrompt(`— ${currentRoom.getName()} —`);
-      this.ui.displayPrompt(currentRoom.amendDescription());
+      if (currentRoom.getHasConditionalDescription()) {
+        this.ui.displayPrompt(
+          currentRoom.conditionalDescription(
+            player.getInventory(),
+            createSight(),
+          ),
+        );
+      } else {
+        this.ui.displayPrompt(currentRoom.amendDescription());
+      }
       this.ui.displayPrompt("");
       presentExits(this.ui, currentRoom);
       this.ui.displayPrompt("");
@@ -565,6 +581,12 @@ export class GameController {
       return;
     }
 
+    // C++ special-cases MEMORY GOBLET after description (Sight / YOUR MEMORY flow)
+    if (itemName === "MEMORY GOBLET") {
+      await this.handleMemoryGoblet(player);
+      return;
+    }
+
     const interaction = item.getInteraction();
     if (!interaction) {
       this.ui.displayPrompt("You can't pick that up.");
@@ -590,6 +612,10 @@ export class GameController {
       }
       if (interaction.puzzleId === "chant") {
         await this.handleChantPuzzle(player);
+        return;
+      }
+      if (interaction.puzzleId === "memory") {
+        await this.handleMemoryPuzzle(player);
         return;
       }
       await this.handlePuzzleStub(player, interaction.puzzleId);
@@ -713,11 +739,65 @@ export class GameController {
   }
 
   /**
+   * Port of InteractClass memory branch + MemoryPuzzle::runPuzzle().
+   */
+  private async handleMemoryPuzzle(player: Player): Promise<void> {
+    if (this.memoryPuzzle.isSolved()) {
+      this.ui.displayPrompt("This item seems dormant.");
+      return;
+    }
+
+    const solved = await this.memoryPuzzle.runPuzzle(this.ui);
+    if (solved) {
+      this.ui.displayPrompt(
+        "The memories react positively to your answers, they break free from the crystal tank and attack your body, ripping out a memory of your own, they place it in your hand and go back into the tank",
+      );
+      player.addItem(createPlayerMemory());
+    }
+  }
+
+  /**
+   * Port of C++ GameController MEMORY GOBLET inspect branch.
+   */
+  private async handleMemoryGoblet(player: Player): Promise<void> {
+    if (this.memoryGobletIsActive) {
+      this.ui.displayPrompt(
+        "You dunk your head into the goblet you are granted SIGHT",
+      );
+      player.addItem(createSight());
+      await this.ui.userInput();
+      return;
+    }
+
+    if (player.inInventory("YOUR MEMORY")) {
+      this.ui.displayPrompt(
+        "You place YOUR MEMORY into the MEMORY GOBLET and it unleashes a blue flame as it roars to life",
+      );
+      player.useItem("YOUR MEMORY");
+      this.memoryGobletIsActive = true;
+      await this.ui.userInput();
+      return;
+    }
+
+    this.ui.displayPrompt(
+      "You approch the tank of memories, however you lack the item that must go here... you walk away.",
+    );
+    await this.ui.userInput();
+  }
+
+  /**
    * Remaining puzzle modules not ported yet.
    */
   private async handlePuzzleStub(
     player: Player,
-    puzzleId: "gallery" | "mirror" | "fountain" | "maze" | "chant" | undefined,
+    puzzleId:
+      | "gallery"
+      | "mirror"
+      | "fountain"
+      | "maze"
+      | "chant"
+      | "memory"
+      | undefined,
   ): Promise<void> {
     if (puzzleId === "gallery") {
       await this.handleGalleryPuzzle(player);
@@ -741,6 +821,11 @@ export class GameController {
 
     if (puzzleId === "chant") {
       await this.handleChantPuzzle(player);
+      return;
+    }
+
+    if (puzzleId === "memory") {
+      await this.handleMemoryPuzzle(player);
       return;
     }
 

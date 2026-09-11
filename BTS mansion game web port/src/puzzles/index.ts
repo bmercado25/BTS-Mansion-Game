@@ -8,3 +8,4 @@ export {
   GALLERY_ANSWERS,
 } from "./galleryPuzzle";
 export { ChantPuzzle, CHANT_PHRASE } from "./chantPuzzle";
+export { MemoryPuzzle } from "./memoryPuzzle";

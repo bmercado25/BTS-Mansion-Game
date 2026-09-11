@@ -149,6 +149,19 @@ export class Room {
     return this.conditionalRoomDescription;
   }
 
+  /**
+   * Port of C++ RoomClass::conditionalDescription — Sight (or other item) reveals alt text.
+   */
+  conditionalDescription(inventory: Item[], requiredItem: Item): string {
+    const hasItem = inventory.some(
+      (item) => item.getName() === requiredItem.getName(),
+    );
+    if (hasItem) {
+      return this.conditionalRoomDescription;
+    }
+    return this.amendDescription();
+  }
+
   /** Port of C++ AmendDescription — base text + item blurbs. */
   amendDescription(): string {
     let text = this.roomDescription;

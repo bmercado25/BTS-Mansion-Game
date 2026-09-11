@@ -32,4 +32,4 @@ export {
   createMazeMap,
   createCandle4,
 } from "./outdoor";
-export { buildMemoryWing, createCandle5 } from "./memory";
+export { buildMemoryWing, createCandle5, createPlayerMemory, createSight } from "./memory";

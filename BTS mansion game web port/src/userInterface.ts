@@ -68,4 +68,8 @@ export class UserInterface {
   clear(): void {
     this.terminal.clear();
   }
+
+  sleep(ms: number): Promise<void> {
+    return this.terminal.sleep(ms);
+  }
 }
