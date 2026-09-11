@@ -10,6 +10,7 @@ import {
 } from "./domain";
 import {
   buildMansionWorld,
+  createCandle5,
   createDiningHallKey,
   createGalleryHalfKey,
   createHolyWater,
@@ -17,7 +18,13 @@ import {
   createMazeMap,
   createMirrorHalfKey,
 } from "./world";
-import { MirrorPuzzle, FountainPuzzle, MazePuzzle, GalleryPuzzle } from "./puzzles";
+import {
+  MirrorPuzzle,
+  FountainPuzzle,
+  MazePuzzle,
+  GalleryPuzzle,
+  ChantPuzzle,
+} from "./puzzles";
 
 /**
  * GameController — mansion world + interactions (Phase 6).
@@ -34,6 +41,7 @@ export class GameController {
   private fountainPuzzle = new FountainPuzzle();
   private mazePuzzle = new MazePuzzle();
   private galleryPuzzle = new GalleryPuzzle();
+  private chantPuzzle = new ChantPuzzle();
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -48,6 +56,7 @@ export class GameController {
     this.fountainPuzzle = new FountainPuzzle();
     this.mazePuzzle = new MazePuzzle();
     this.galleryPuzzle = new GalleryPuzzle();
+    this.chantPuzzle = new ChantPuzzle();
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -487,19 +496,40 @@ export class GameController {
       return;
     }
 
-    // C3 / C4 — place on the pentacle (no extra unlock in C++ ritual branch)
-    for (const id of ["C3", "C4"] as const) {
+    // C3 / C4 / C5 — place on the pentacle
+    for (const id of ["C3", "C4", "C5"] as const) {
       if (player.inInventory("CANDLE", id)) {
         player.useItemWithId("CANDLE", id);
         this.ui.displayPrompt("You have placed a candle");
         currentRoom.addCandle();
         this.ui.displayPentacle(currentRoom.getCandleValue());
+
+        // C++ never wires an entrance to the memory wing; open it after C4.
+        if (id === "C4") {
+          this.openMemoryWingEntrance(currentRoom);
+        }
+
         this.syncRoom(currentRoom);
         return;
       }
     }
 
     this.ui.displayPrompt("You do not have a candle");
+  }
+
+  /**
+   * Sensible working entrance: C++ memory wing exists but has no main-map link.
+   * After placing C4, open MEMORY OF THE MANSION from the ritual room.
+   */
+  private openMemoryWingEntrance(ritualRoom: Room): void {
+    const options = ritualRoom.getRoomOptions();
+    if (!options.includes("MEMORY OF THE MANSION")) {
+      options.push("MEMORY OF THE MANSION");
+      ritualRoom.setRoomOptions(options);
+      this.ui.displayPrompt(
+        "As you place the candle, a rift tears open — a path into the monster's memories!",
+      );
+    }
   }
 
   private async handleInspect(player: Player): Promise<void> {
@@ -556,6 +586,10 @@ export class GameController {
       }
       if (interaction.puzzleId === "gallery") {
         await this.handleGalleryPuzzle(player);
+        return;
+      }
+      if (interaction.puzzleId === "chant") {
+        await this.handleChantPuzzle(player);
         return;
       }
       await this.handlePuzzleStub(player, interaction.puzzleId);
@@ -653,11 +687,37 @@ export class GameController {
   }
 
   /**
+   * Port of InteractClass chant branch + ChantPuzzle::runPuzzle().
+   * C++ teleport is WIP — here we actually move the player to RITUAL ROOM with Candle5.
+   */
+  private async handleChantPuzzle(player: Player): Promise<void> {
+    if (this.chantPuzzle.isSolved()) {
+      this.ui.displayPrompt("This item seems dormant.");
+      return;
+    }
+
+    const solved = await this.chantPuzzle.runPuzzle(this.ui);
+    if (!solved) {
+      return;
+    }
+
+    this.ui.displayPrompt(
+      "The monster roars as you chant, you get teleported back to the ritual room with the 5th candle in your hand",
+    );
+    player.addItem(createCandle5());
+
+    const ritual = this.rooms.get("RITUAL ROOM");
+    if (ritual) {
+      player.setRoom(ritual);
+    }
+  }
+
+  /**
    * Remaining puzzle modules not ported yet.
    */
   private async handlePuzzleStub(
     player: Player,
-    puzzleId: "gallery" | "mirror" | "fountain" | "maze" | undefined,
+    puzzleId: "gallery" | "mirror" | "fountain" | "maze" | "chant" | undefined,
   ): Promise<void> {
     if (puzzleId === "gallery") {
       await this.handleGalleryPuzzle(player);
@@ -676,6 +736,11 @@ export class GameController {
 
     if (puzzleId === "maze") {
       await this.handleMazePuzzle(player);
+      return;
+    }
+
+    if (puzzleId === "chant") {
+      await this.handleChantPuzzle(player);
       return;
     }
 
