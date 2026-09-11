@@ -52,7 +52,7 @@ export class GameController {
   private memoryGobletIsActive = false;
   /** Browser stand-in for C++ sanitySequence thread. */
   private sanityTimerId: ReturnType<typeof setInterval> | null = null;
-  /** Prevents lose/win from double-firing (e.g. sanity tick after victory). */
+  /** Prevents lose/ending from double-firing (e.g. sanity tick after C5). */
   private outcomeSettled = false;
   /** C++ isInProtectedAction — inspect / inventory / candles / safe rooms. */
   private isInProtectedAction = false;
@@ -110,15 +110,7 @@ export class GameController {
   }
 
   endGame(): void {
-    this.finishGame("lose");
-  }
-
-  /**
-   * C++ never finished a win branch (placement stopped at C1/C2; pentacle 4–5 WIP).
-   * Web port: placing all 5 ritual candles completes the nightmare.
-   */
-  private winGame(): void {
-    this.finishGame("win");
+    this.finishGame();
   }
 
   /** Match C++ GameControllerClass::inProtectedState. */
@@ -126,7 +118,8 @@ export class GameController {
     return this.isInProtectedAction;
   }
 
-  private finishGame(outcome: "win" | "lose"): void {
+  /** Sanity / monster / quit lose path. */
+  private finishGame(): void {
     if (this.outcomeSettled) {
       return;
     }
@@ -136,22 +129,6 @@ export class GameController {
     this.running = false;
     this.ui.cancelAsk();
 
-    if (outcome === "win") {
-      // Keep the final pentacle visible above the ending.
-      this.ui.displayPrompt("");
-      this.ui.displayPrompt(
-        "The fifth candle locks into place. The pentacle burns white-hot.",
-      );
-      this.ui.displayPrompt(
-        "The mansion shudders — walls peel back into fog, and the nightmare loosens its grip.",
-      );
-      this.ui.displayPrompt(
-        "You stumble into cold morning air. You are free.",
-      );
-      this.ui.displayPrompt("Thank you for playing");
-      return;
-    }
-
     this.ui.clear();
     this.ui.displayPrompt(
       "Your world disappears around you. You are still aware but there is nothing,",
@@ -159,6 +136,22 @@ export class GameController {
     this.ui.displayPrompt("like someone pulled the plug on your brain - Am I dead?");
     this.ui.displayPrompt("...You wonder if this will end.");
     this.ui.displayPrompt("Thank you for playing");
+  }
+
+  /**
+   * After C5 / endingSequence — stop timers without inventing a custom win.
+   * Full HENRY / MALUM / bad text lands in R7.
+   */
+  private settleAfterEnding(): void {
+    if (this.outcomeSettled) {
+      return;
+    }
+    this.outcomeSettled = true;
+    this.stopSanitySequence();
+    this.stopMonsterTimer();
+    this.running = false;
+    this.ui.cancelAsk();
+    this.ui.displayPrompt("Thank you for playing.");
   }
 
   /**
@@ -455,9 +448,9 @@ export class GameController {
 
       if (command === "CANDLE" && currentRoom.getName() === "RITUAL ROOM") {
         this.ui.clear();
-        await this.withProtectedAction(() => {
-          this.handleRitualCandle(player, currentRoom);
-        });
+        await this.withProtectedAction(() =>
+          this.handleRitualCandle(player, currentRoom),
+        );
         if (!this.running) {
           return;
         }
@@ -772,83 +765,144 @@ export class GameController {
     }
   }
 
-  private handleRitualCandle(player: Player, currentRoom: Room): void {
+  /**
+   * Port of C++ ritual CANDLE branches (letters M A L U M + teleports).
+   * C3–C5 call addCandle for pentacle consistency (C++ omits some).
+   */
+  private async handleRitualCandle(
+    player: Player,
+    currentRoom: Room,
+  ): Promise<void> {
+    if (player.getInventorySize() === 0) {
+      this.ui.displayPrompt("You do not have a candle");
+      return;
+    }
+
     if (player.inInventory("CANDLE", "C1")) {
       player.useItemWithId("CANDLE", "C1");
-      this.ui.displayPrompt("You have placed a candle");
+      this.ui.displayPrompt("You have placed a candle.");
       currentRoom.addCandle();
       this.ui.displayPentacle(currentRoom.getCandleValue());
+      await this.ui.sleep(10_000);
+
       this.ui.displayPrompt(
         "As you place the candle, a hidden tunnel opens, leading to the kitchen!",
       );
+      this.ui.displayPrompt("A significant symbol appears in your path:");
+      this.ui.displayPrompt("M");
+
       const options = currentRoom.getRoomOptions();
       if (!options.includes("KITCHEN")) {
         options.push("KITCHEN");
         currentRoom.setRoomOptions(options);
       }
       this.syncRoom(currentRoom);
-      this.checkRitualVictory(currentRoom);
       return;
     }
 
     if (player.inInventory("CANDLE", "C2")) {
       player.useItemWithId("CANDLE", "C2");
-      this.ui.displayPrompt("You have placed a candle");
+      this.ui.displayPrompt("You have placed the 2nd candle.");
       currentRoom.addCandle();
-      this.ui.displayPrompt("As you place the candle, a portal is revealed!");
       this.ui.displayPentacle(currentRoom.getCandleValue());
+      await this.ui.sleep(12_000);
+
+      this.ui.displayPrompt("As you place the candle, a portal is revealed!");
+      this.ui.displayPrompt("A significant symbol appears in your path:");
+      this.ui.displayPrompt("A");
+
       const options = currentRoom.getRoomOptions();
       if (!options.includes("PORTAL")) {
         options.push("PORTAL");
         currentRoom.setRoomOptions(options);
       }
       this.syncRoom(currentRoom);
-      this.checkRitualVictory(currentRoom);
       return;
     }
 
-    // C3 / C4 / C5 — place on the pentacle (C++ never handled these; needed for win)
-    for (const id of ["C3", "C4", "C5"] as const) {
-      if (player.inInventory("CANDLE", id)) {
-        player.useItemWithId("CANDLE", id);
-        this.ui.displayPrompt("You have placed a candle");
-        currentRoom.addCandle();
-        this.ui.displayPentacle(currentRoom.getCandleValue());
+    if (player.inInventory("CANDLE", "C3")) {
+      this.ui.displayPrompt("You place the 3rd candle.");
+      player.useItemWithId("CANDLE", "C3");
+      currentRoom.addCandle();
+      this.ui.displayPentacle(currentRoom.getCandleValue());
+      await this.ui.sleep(12_000);
 
-        // C++ never wires an entrance to the memory wing; open it after C4.
-        if (id === "C4") {
-          this.openMemoryWingEntrance(currentRoom);
-        }
+      this.ui.displayPrompt("A significant symbol appears in your path:");
+      this.ui.displayPrompt("L");
+      await this.ui.sleep(8000);
+      this.syncRoom(currentRoom);
+      return;
+    }
 
-        this.syncRoom(currentRoom);
-        this.checkRitualVictory(currentRoom);
-        return;
+    if (player.inInventory("CANDLE", "C4")) {
+      this.ui.displayPrompt("You place the 4th candle.");
+      currentRoom.addCandle();
+      this.ui.displayPentacle(currentRoom.getCandleValue());
+      await this.ui.sleep(12_000);
+
+      this.ui.displayPrompt("A significant symbol appears in your path:");
+      this.ui.displayPrompt("U");
+      await this.ui.sleep(6000);
+
+      player.useItemWithId("CANDLE", "C4");
+      this.syncRoom(currentRoom);
+
+      const memory = this.rooms.get("MEMORY OF THE MANSION");
+      if (memory) {
+        player.setRoom(memory);
       }
+      await this.playTeleportSequence();
+      await this.ui.sleep(3000);
+      this.ui.clear();
+      return;
+    }
+
+    if (player.inInventory("CANDLE", "C5")) {
+      this.ui.displayPrompt("It is final...");
+      player.useItemWithId("CANDLE", "C5");
+      currentRoom.addCandle();
+      this.ui.displayPentacle(currentRoom.getCandleValue());
+      await this.ui.sleep(12_000);
+
+      this.ui.displayPrompt("A significant symbol appears in your path:");
+      this.ui.displayPrompt("M");
+      await this.ui.sleep(7000);
+
+      this.ui.clear();
+      await this.endingSequence();
+      await this.ui.sleep(3000);
+      this.settleAfterEnding();
+      return;
     }
 
     this.ui.displayPrompt("You do not have a candle");
   }
 
-  /** Win when all five vertices of the pentacle hold a candle. */
-  private checkRitualVictory(ritualRoom: Room): void {
-    if (ritualRoom.getCandleValue() >= 5) {
-      this.winGame();
+  /**
+   * Port of GameControllerClass::playTeleportSequence — spam then clear.
+   * Scaled down from C++'s 10k sync loop so the browser stays responsive.
+   */
+  private async playTeleportSequence(): Promise<void> {
+    for (let i = 0; i < 48; i++) {
+      this.ui.displayPrompt("WHERE AM I GOING");
+      if (i % 3 === 0 && i < 18) {
+        this.ui.displayPrompt("HELP ME");
+      }
+      if (i > 12) {
+        this.ui.displayPrompt("THERE IS NO COMING BACK NOW");
+      }
+      if (i % 4 === 0) {
+        await this.ui.sleep(16);
+      }
     }
+    this.ui.clear();
   }
 
   /**
-   * Sensible working entrance: C++ memory wing exists but has no main-map link.
-   * After placing C4, open MEMORY OF THE MANSION from the ritual room.
+   * Stub for R7 — C++ endingSequence (SAY MY NAME → HENRY / MALUM / bad).
    */
-  private openMemoryWingEntrance(ritualRoom: Room): void {
-    const options = ritualRoom.getRoomOptions();
-    if (!options.includes("MEMORY OF THE MANSION")) {
-      options.push("MEMORY OF THE MANSION");
-      ritualRoom.setRoomOptions(options);
-      this.ui.displayPrompt(
-        "As you place the candle, a rift tears open — a path into the monster's memories!",
-      );
-    }
+  private async endingSequence(): Promise<void> {
+    this.ui.displayPrompt("I AM...");
   }
 
   private async handleInspect(player: Player): Promise<void> {
@@ -873,7 +927,7 @@ export class GameController {
       this.ui.displayPrompt("Type PICKUP to pick up the item");
       const confirm = (await this.ui.userInput()).trim().toUpperCase();
       if (confirm === "PICKUP") {
-        this.pickUpNamedItem(player, currentRoom, itemName);
+        await this.pickUpNamedItem(player, currentRoom, itemName);
       }
       return;
     }
@@ -1201,10 +1255,14 @@ export class GameController {
     this.ui.displayPrompt("What item would you like to pick up?");
 
     const itemName = (await this.ui.userInput()).trim().toUpperCase();
-    this.pickUpNamedItem(player, currentRoom, itemName);
+    await this.pickUpNamedItem(player, currentRoom, itemName);
   }
 
-  private pickUpNamedItem(player: Player, currentRoom: Room, itemName: string): void {
+  private async pickUpNamedItem(
+    player: Player,
+    currentRoom: Room,
+    itemName: string,
+  ): Promise<void> {
     const item = currentRoom.getRoomItemByName(itemName);
     if (item.getName() !== itemName) {
       this.ui.displayPrompt("There is no such item here.");
@@ -1229,6 +1287,29 @@ export class GameController {
     this.ui.clear();
     this.ui.displayPrompt(`You picked up ${itemName}.`);
     this.ui.displayPrompt("-----------");
+
+    // C++: picking up C4 in HEDGE MAZE EXIT teleports to RITUAL ROOM.
+    if (itemName === "CANDLE" && currentRoom.getName() === "HEDGE MAZE EXIT") {
+      this.ui.clear();
+      this.ui.displayPrompt(
+        "As you pick up the 4th candle, a surge of energy flows through the room...",
+      );
+      await this.ui.sleep(2000);
+      this.ui.displayPrompt(
+        "A mysterious portal materializes before you, shimmering with eldritch energy...",
+      );
+      await this.ui.sleep(2000);
+      this.ui.displayPrompt(
+        "The portal pulls you in... You are heading to the Ritual Room.",
+      );
+      const ritual = this.rooms.get("RITUAL ROOM");
+      if (ritual) {
+        player.setRoom(ritual);
+      }
+      await this.playTeleportSequence();
+      await this.ui.sleep(3000);
+      this.ui.clear();
+    }
   }
 
   private async viewInventory(player: Player): Promise<void> {
