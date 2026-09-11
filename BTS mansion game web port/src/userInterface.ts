@@ -65,6 +65,10 @@ export class UserInterface {
     this.terminal.printPre(pentacleArt(candleVal));
   }
 
+  displayPre(block: string): void {
+    this.terminal.printPre(block);
+  }
+
   clear(): void {
     this.terminal.clear();
   }

@@ -30,9 +30,10 @@ import {
   MemoryPuzzle,
   GreaterLibraryPuzzle,
 } from "./puzzles";
+import { MonsterTimer, MONSTER_GRAB_ART } from "./monster";
 
 /**
- * GameController — mansion world + interactions (Phase 6).
+ * GameController — mansion world + interactions + monster timer (R4).
  */
 export class GameController {
   private readonly ui: UserInterface;
@@ -53,6 +54,11 @@ export class GameController {
   private sanityTimerId: ReturnType<typeof setInterval> | null = null;
   /** Prevents lose/win from double-firing (e.g. sanity tick after victory). */
   private outcomeSettled = false;
+  /** C++ isInProtectedAction — inspect / inventory / candles / safe rooms. */
+  private isInProtectedAction = false;
+  private monster: MonsterTimer | null = null;
+  /** When set, game loop awaits grab before accepting the next command. */
+  private grabPromise: Promise<void> | null = null;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -71,6 +77,8 @@ export class GameController {
     this.greaterLibraryPuzzle = new GreaterLibraryPuzzle();
     this.memoryGobletIsActive = false;
     this.outcomeSettled = false;
+    this.isInProtectedAction = false;
+    this.grabPromise = null;
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -91,9 +99,13 @@ export class GameController {
     this.ui.displayPrompt(
       "Unfortunately, it is only a matter of time before you completely lose it. Consume SANITY PILLS to increase your sanity.",
     );
+    this.ui.displayPrompt(
+      "A presence stalks the mansion — when it nears, HIDE in closets, under tables, or under beds.",
+    );
     this.ui.displayPrompt("");
 
     this.startSanitySequence();
+    this.startMonsterTimer();
     await this.gameLoop();
   }
 
@@ -109,12 +121,18 @@ export class GameController {
     this.finishGame("win");
   }
 
+  /** Match C++ GameControllerClass::inProtectedState. */
+  inProtectedState(): boolean {
+    return this.isInProtectedAction;
+  }
+
   private finishGame(outcome: "win" | "lose"): void {
     if (this.outcomeSettled) {
       return;
     }
     this.outcomeSettled = true;
     this.stopSanitySequence();
+    this.stopMonsterTimer();
     this.running = false;
     this.ui.cancelAsk();
 
@@ -210,6 +228,118 @@ export class GameController {
     }
   }
 
+  /** Port of MonsterClass (120s) via setInterval. */
+  private startMonsterTimer(): void {
+    this.stopMonsterTimer();
+    this.monster = new MonsterTimer(120, {
+      isProtected: () => this.inProtectedState(),
+      onApproaching: () => {
+        if (!this.running) {
+          return;
+        }
+        this.ui.displayPrompt(
+          "The monster is approching, you must hide, hurry!",
+        );
+      },
+      onTriggered: () => {
+        if (!this.running) {
+          return;
+        }
+        // C++ skips grab while protected, then loop restarts the timer.
+        if (this.inProtectedState()) {
+          this.monster?.start();
+          return;
+        }
+        this.grabPromise = this.runMonsterGrabSequence();
+      },
+    });
+    this.monster.start();
+  }
+
+  private stopMonsterTimer(): void {
+    this.monster?.stop();
+    this.monster = null;
+  }
+
+  /**
+   * Port of MonsterClass::onTimerTriggered — print-only until Enter wake-up.
+   */
+  private async runMonsterGrabSequence(): Promise<void> {
+    if (!this.player || !this.running) {
+      return;
+    }
+
+    this.ui.cancelAsk();
+    this.ui.clear();
+    this.ui.displayPrompt(
+      "A shadowy monster with elongated limbs grabs you, as the shadows encapsulating this monster consume you and all you can feel is its cold embrace.",
+    );
+    this.ui.displayPre(MONSTER_GRAB_ART);
+    this.ui.displayPrompt(
+      "The longer you stare, the more you feel you lose your ties to reality, as if it was sucking the life out of you",
+    );
+
+    await this.ui.sleep(5000);
+    if (!this.running) {
+      return;
+    }
+
+    this.ui.displayPrompt(
+      "Its been satisfied -- It disappears into nothingness, you have lost 30 sanity. and fall to the ground",
+    );
+    await this.ui.sleep(5000);
+    if (!this.running || !this.player) {
+      return;
+    }
+
+    this.player.setSanity(this.player.getSanity() - 30);
+    this.ui.clear();
+
+    if (this.player.getSanity() <= 0) {
+      this.ui.displayPrompt(
+        "The monster sucked the remaining life out of your body",
+      );
+      this.ui.displayPrompt("You are unable to wake up");
+      await this.ui.sleep(3000);
+      this.endGame();
+      return;
+    }
+
+    this.ui.displayPrompt("Press ENTER to wake up");
+    await this.ui.waitForInput();
+    if (!this.running) {
+      return;
+    }
+    this.ui.clear();
+
+    // C++ game loop restarts the monster after a trigger.
+    this.monster?.start();
+  }
+
+  /**
+   * Protect during inspect / inventory / candle (C++ isInProtectedAction).
+   * Restores safe-room protection afterward.
+   */
+  private async withProtectedAction<T>(
+    action: () => Promise<T> | T,
+  ): Promise<T> {
+    this.isInProtectedAction = true;
+    try {
+      return await action();
+    } finally {
+      this.isInProtectedAction = this.player?.getRoom().getIsSafe() ?? false;
+    }
+  }
+
+  /** After movement: sync protected flag; reset monster when entering a hide. */
+  private onPlayerMoved(player: Player): void {
+    const safe = player.getRoom().getIsSafe();
+    this.isInProtectedAction = safe;
+    if (safe) {
+      this.monster?.reset();
+    }
+  }
+
   private syncRoom(room: Room): void {
     this.rooms.set(room.getName(), room);
   }
@@ -220,8 +350,18 @@ export class GameController {
     }
 
     while (this.running) {
+      if (this.grabPromise) {
+        await this.grabPromise;
+        this.grabPromise = null;
+        if (!this.running) {
+          return;
+        }
+      }
+
       const player = this.player;
       const currentRoom = player.getRoom();
+      // Stay protected while lingering in a hide room.
+      this.isInProtectedAction = currentRoom.getIsSafe();
 
       this.ui.displayPrompt("");
       this.ui.displayPrompt(`Sanity Level: ${player.getSanity()}`);
@@ -243,7 +383,20 @@ export class GameController {
         "You cant contain your curiosity and have the urge to INSPECT the items in the room. (type 'INVENTORY' to open inventory. Type 'QUIT' to exit the game)",
       );
 
+      if (this.grabPromise) {
+        await this.grabPromise;
+        this.grabPromise = null;
+        if (!this.running) {
+          return;
+        }
+        continue;
+      }
+
       const command = (await this.ui.userInput()).trim().toUpperCase();
+      if (this.grabPromise) {
+        await this.grabPromise;
+        this.grabPromise = null;
+      }
       if (!this.running) {
         return;
       }
@@ -253,9 +406,16 @@ export class GameController {
         return;
       }
 
+      if (command === "ESCAPE") {
+        this.ui.displayPrompt(
+          "You manage to escape the grasp of the monster and are back in the same room you just were in.",
+        );
+        continue;
+      }
+
       if (command === "INVENTORY") {
         this.ui.clear();
-        await this.viewInventory(player);
+        await this.withProtectedAction(() => this.viewInventory(player));
         if (!this.running) {
           return;
         }
@@ -264,7 +424,7 @@ export class GameController {
 
       if (command === "INSPECT") {
         this.ui.clear();
-        await this.handleInspect(player);
+        await this.withProtectedAction(() => this.handleInspect(player));
         if (!this.running) {
           return;
         }
@@ -282,7 +442,9 @@ export class GameController {
 
       if (command === "CANDLE" && currentRoom.getName() === "RITUAL ROOM") {
         this.ui.clear();
-        this.handleRitualCandle(player, currentRoom);
+        await this.withProtectedAction(() => {
+          this.handleRitualCandle(player, currentRoom);
+        });
         if (!this.running) {
           return;
         }
@@ -291,6 +453,7 @@ export class GameController {
 
       // Special door / passage commands (may or may not be in exit list wording)
       if (await this.handleSpecialMovement(player, currentRoom, command)) {
+        this.onPlayerMoved(player);
         if (!this.running) {
           return;
         }
@@ -300,6 +463,7 @@ export class GameController {
       const exits = currentRoom.getRoomOptions();
       if (exits.includes(command)) {
         await this.handleExitCommand(player, currentRoom, command);
+        this.onPlayerMoved(player);
         if (!this.running) {
           return;
         }
@@ -865,6 +1029,7 @@ export class GameController {
     const ritual = this.rooms.get("RITUAL ROOM");
     if (ritual) {
       player.setRoom(ritual);
+      this.onPlayerMoved(player);
     }
   }
 

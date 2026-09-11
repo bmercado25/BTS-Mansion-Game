@@ -84,7 +84,7 @@ Clue sources: ritual letters → **MALUM**; journals / newspaper → **HENRY**.
 
 - [x] **R2** World: rooms, hides (`isSafe`), journals/notes  
 - [x] **R3** Greater Library Puzzle; remove YDDID/PUZZLE  
-- [ ] **R4** Monster timer + protected + hide reset  
+- [x] **R4** Monster timer + protected + hide reset  
 - [ ] **R5** Sanity −1/9s + jumble + SANITY command  
 - [ ] **R6** Ritual letters, C4 teleports, drop fake 5-candle win  
 - [ ] **R7** `endingSequence` (HENRY / MALUM / bad)  
