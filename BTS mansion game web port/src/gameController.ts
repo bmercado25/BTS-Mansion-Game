@@ -49,6 +49,8 @@ export class GameController {
   private memoryGobletIsActive = false;
   /** Browser stand-in for C++ sanitySequence thread. */
   private sanityTimerId: ReturnType<typeof setInterval> | null = null;
+  /** Prevents lose/win from double-firing (e.g. sanity tick after victory). */
+  private outcomeSettled = false;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -66,6 +68,7 @@ export class GameController {
     this.chantPuzzle = new ChantPuzzle();
     this.memoryPuzzle = new MemoryPuzzle();
     this.memoryGobletIsActive = false;
+    this.outcomeSettled = false;
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -93,9 +96,42 @@ export class GameController {
   }
 
   endGame(): void {
+    this.finishGame("lose");
+  }
+
+  /**
+   * C++ never finished a win branch (placement stopped at C1/C2; pentacle 4–5 WIP).
+   * Web port: placing all 5 ritual candles completes the nightmare.
+   */
+  private winGame(): void {
+    this.finishGame("win");
+  }
+
+  private finishGame(outcome: "win" | "lose"): void {
+    if (this.outcomeSettled) {
+      return;
+    }
+    this.outcomeSettled = true;
     this.stopSanitySequence();
     this.running = false;
     this.ui.cancelAsk();
+
+    if (outcome === "win") {
+      // Keep the final pentacle visible above the ending.
+      this.ui.displayPrompt("");
+      this.ui.displayPrompt(
+        "The fifth candle locks into place. The pentacle burns white-hot.",
+      );
+      this.ui.displayPrompt(
+        "The mansion shudders — walls peel back into fog, and the nightmare loosens its grip.",
+      );
+      this.ui.displayPrompt(
+        "You stumble into cold morning air. You are free.",
+      );
+      this.ui.displayPrompt("Thank you for playing");
+      return;
+    }
+
     this.ui.clear();
     this.ui.displayPrompt(
       "Your world disappears around you. You are still aware but there is nothing,",
@@ -218,35 +254,53 @@ export class GameController {
       if (command === "INVENTORY") {
         this.ui.clear();
         await this.viewInventory(player);
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
       if (command === "INSPECT") {
         this.ui.clear();
         await this.handleInspect(player);
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
       if (command === "PICKUP") {
         this.ui.clear();
         await this.handlePickup(player);
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
       if (command === "CANDLE" && currentRoom.getName() === "RITUAL ROOM") {
         this.ui.clear();
         this.handleRitualCandle(player, currentRoom);
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
       // Special door / passage commands (may or may not be in exit list wording)
       if (await this.handleSpecialMovement(player, currentRoom, command)) {
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
       const exits = currentRoom.getRoomOptions();
       if (exits.includes(command)) {
         await this.handleExitCommand(player, currentRoom, command);
+        if (!this.running) {
+          return;
+        }
         continue;
       }
 
@@ -568,6 +622,7 @@ export class GameController {
         currentRoom.setRoomOptions(options);
       }
       this.syncRoom(currentRoom);
+      this.checkRitualVictory(currentRoom);
       return;
     }
 
@@ -583,10 +638,11 @@ export class GameController {
         currentRoom.setRoomOptions(options);
       }
       this.syncRoom(currentRoom);
+      this.checkRitualVictory(currentRoom);
       return;
     }
 
-    // C3 / C4 / C5 — place on the pentacle
+    // C3 / C4 / C5 — place on the pentacle (C++ never handled these; needed for win)
     for (const id of ["C3", "C4", "C5"] as const) {
       if (player.inInventory("CANDLE", id)) {
         player.useItemWithId("CANDLE", id);
@@ -600,11 +656,19 @@ export class GameController {
         }
 
         this.syncRoom(currentRoom);
+        this.checkRitualVictory(currentRoom);
         return;
       }
     }
 
     this.ui.displayPrompt("You do not have a candle");
+  }
+
+  /** Win when all five vertices of the pentacle hold a candle. */
+  private checkRitualVictory(ritualRoom: Room): void {
+    if (ritualRoom.getCandleValue() >= 5) {
+      this.winGame();
+    }
   }
 
   /**

@@ -57,7 +57,7 @@ async function menuFlow(): Promise<void> {
     }
 
     if (command === "PENTACLE") {
-      ui.displayPentacle(3);
+      ui.displayPentacle(5);
       continue;
     }
 

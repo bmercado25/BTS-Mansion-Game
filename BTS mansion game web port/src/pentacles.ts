@@ -76,30 +76,50 @@ const PENTACLE_3 = [
   `          "\`^\\||||/\`"`,
 ].join("\n");
 
-const PENTACLE_PLACEHOLDER = [
-  `bruh   `,
+/** C++ left a "bruh" placeholder for candles 4–5 — completed for the web win path. */
+const PENTACLE_4 = [
   `       ".d$$$******$$$$c."        `,
-  `    ".d$P'            '$$c"      `,
-  `   "$$$$$.           .$$$*$."    `,
+  `    ".d$P'   /||||\\    '$$c"      `,
+  `   "$$$$$.   \\||||/   .$$$*$."    `,
   ` ".$$ 4$L*$$.     .$$Pd$  '$b"   `,
   ` "$F   *$. '$$e.e$$' 4$F   ^$b"  `,
   `"d$     $$   z$$$e   $$     '$." `,
   `"$P     \`$L$$P\` \`$$d$'      $$" `,
   `"$$     e$$F       4$$b.     $$" `,
   `"$b  .$$' $$      .$$ '4$b.  $$" `,
-  `"$$e$P    $b     d$\`    $$c$F" `,
-  `"$P$$$$$$$$$$$$$$$$$$$$$$$$$$"  `,
+  `/||\\-$P    $b     d$\`    $$c/||\\`,
+  `\\||/$$$$$$$$$$$$$$$$$$$$$$$$\\||/  `,
   ` "'$c.      4$.  $$       .$$"   `,
   `  "^$$.      $$ d$'      d$P"    `,
   `    "'$$c.   \`$b$F    .d$P'"     `,
-  `      "\`4$$$c.$$$..e$$P'"        `,
-  `          "\`^^^^^^^\`"`,
+  `      "\`4$$$c/||||\\e$$P'"        `,
+  `          "\`^\\||||/\`"`,
+].join("\n");
+
+const PENTACLE_5 = [
+  `       ".d$$$******$$$$c."        `,
+  `    ".d$P'/||||\\ /||||\\'$$c"      `,
+  `   "$$$$$.\\||||/ \\||||/.$$$*$."    `,
+  ` ".$$ 4$L*$$.     .$$Pd$  '$b"   `,
+  ` "$F   *$. '$$e.e$$' 4$F   ^$b"  `,
+  `"d$     $$   z$$$e   $$     '$." `,
+  `"$P     \`$L$$P\` \`$$d$'      $$" `,
+  `"$$     e$$F       4$$b.     $$" `,
+  `"$b  .$$' $$      .$$ '4$b.  $$" `,
+  `/||\\-$P    $b     d$\`    $$c/||\\`,
+  `\\||/$$$$$$$$$$$$$$$$$$$$$$$$\\||/  `,
+  ` "'$c.      4$.  $$       .$$"   `,
+  `  "^$$.      $$ d$'      d$P"    `,
+  `    "'$$c.   \`$b$F    .d$P'"     `,
+  `      "\`4$$$c/||||\\e$$P'"        `,
+  `          "\`^\\||||/\`"`,
 ].join("\n");
 
 export function pentacleArt(candleVal: number): string {
-  if (candleVal === 0) return PENTACLE_0;
+  if (candleVal <= 0) return PENTACLE_0;
   if (candleVal === 1) return PENTACLE_1;
   if (candleVal === 2) return PENTACLE_2;
   if (candleVal === 3) return PENTACLE_3;
-  return PENTACLE_PLACEHOLDER;
+  if (candleVal === 4) return PENTACLE_4;
+  return PENTACLE_5;
 }
