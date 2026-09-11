@@ -5,15 +5,15 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 7a status
+## Phase 7b status
 
-**Mirror puzzle** ported (`COMBINATION LOCK` upstairs):
+**Fountain puzzle** ported (`FOUNTAIN PANEL`):
 
-1. `INSPECT` → `COMBINATION LOCK`
-2. Enter three words (exact C++ answers): `MOONLIGHT` · `FOREST GREEN` · `BLACK`
-3. Success → `MIRROR HALF KEY` (combines with gallery half into `MASTER KEY`)
+Answers (exact): `FEAR` · `MEMORY` · `CLOCK` · `GRAVE`  
+Five wrong attempts max → soft red fail text  
+Success → flask text + `HOLY WATER`
 
-Still stubbed: gallery, fountain, maze, chant, memory
+**Mirror** also live. Still stubbed: gallery, maze, chant, memory
 
 ## Run
 

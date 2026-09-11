@@ -17,7 +17,7 @@ import {
   createMazeMap,
   createMirrorHalfKey,
 } from "./world";
-import { MirrorPuzzle } from "./puzzles";
+import { MirrorPuzzle, FountainPuzzle } from "./puzzles";
 
 /**
  * GameController — mansion world + interactions (Phase 6).
@@ -31,9 +31,9 @@ export class GameController {
   private diningHallDoorOpen = false;
   private studyPuzzleSolved = false;
   private galleryPuzzleSolved = false;
-  private fountainPuzzleSolved = false;
   private mazePuzzleSolved = false;
   private mirrorPuzzle = new MirrorPuzzle();
+  private fountainPuzzle = new FountainPuzzle();
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -45,9 +45,9 @@ export class GameController {
     this.diningHallDoorOpen = false;
     this.studyPuzzleSolved = false;
     this.galleryPuzzleSolved = false;
-    this.fountainPuzzleSolved = false;
     this.mazePuzzleSolved = false;
     this.mirrorPuzzle = new MirrorPuzzle();
+    this.fountainPuzzle = new FountainPuzzle();
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -546,6 +546,10 @@ export class GameController {
         await this.handleMirrorPuzzle(player);
         return;
       }
+      if (interaction.puzzleId === "fountain") {
+        await this.handleFountainPuzzle(player);
+        return;
+      }
       await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
@@ -579,6 +583,22 @@ export class GameController {
   }
 
   /**
+   * Port of InteractClass fountain branch + FountainPuzzle::runPuzzle().
+   */
+  private async handleFountainPuzzle(player: Player): Promise<void> {
+    if (this.fountainPuzzle.isSolved()) {
+      this.ui.displayPrompt("This item seems dormant.");
+      return;
+    }
+
+    const solved = await this.fountainPuzzle.runPuzzle(this.ui);
+    if (solved) {
+      this.ui.displayPrompt("You solved the Fountain Puzzle!");
+      player.addItem(createHolyWater());
+    }
+  }
+
+  /**
    * Remaining puzzle modules not ported yet — stubs still award progression items.
    */
   private async handlePuzzleStub(
@@ -604,26 +624,12 @@ export class GameController {
     }
 
     if (puzzleId === "mirror") {
-      // Real solver lives in handleMirrorPuzzle; keep fallback defensive.
       await this.handleMirrorPuzzle(player);
       return;
     }
 
     if (puzzleId === "fountain") {
-      if (this.fountainPuzzleSolved) {
-        this.ui.displayPrompt("This item seems dormant.");
-        return;
-      }
-      this.ui.displayPrompt("Do you want to begin the Fountain Puzzle? (YES or NO)");
-      const answer = (await this.ui.userInput()).trim().toUpperCase();
-      if (answer !== "YES") {
-        this.ui.displayPrompt("You walk away.");
-        return;
-      }
-      this.ui.displayPrompt("Puzzle not ported yet — granting HOLY WATER for exploration.");
-      this.ui.displayPrompt("You solved the Fountain Puzzle!");
-      this.fountainPuzzleSolved = true;
-      player.addItem(createHolyWater());
+      await this.handleFountainPuzzle(player);
       return;
     }
 
