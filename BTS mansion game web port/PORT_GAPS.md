@@ -24,7 +24,7 @@ Web port: this folder. Execute revisions in order **R2 → R10** (see below).
 | Three endings text | `goodEnding` / `neutralEnding` / `badEnding` | Line-by-line + waitForInput |
 | Sanity jumble UI | `displayPrompt(text, sanity)` | Jumble when sanity ≤ 35 |
 | `SANITY` command | Game loop | Quick sanity readout |
-| Backstory | `displayBackstory` | Currently commented out in C++ start; still content to port |
+| Backstory | `displayBackstory` | Ported on START (R8) |
 | Audio | `PlaySound` + item `soundFileName` | Browser `Audio` adaptation (R9) |
 
 ---
@@ -40,10 +40,10 @@ Web port: this folder. Execute revisions in order **R2 → R10** (see below).
 | Sanity drain | **−1** / 9s | Ported (R5) | done |
 | Low sanity UI | Jumbling at ≤35 | Ported (R5) for room descriptions | done |
 | Lose messaging | Sanity / monster / bad ending variants | Lose blurb + three ritual endings (R7) | done |
-| Memory copy | Updated descriptions + garbled Sight text + MEMORY TABLE | Older/temporary letter-room text | **R2 / R8** |
-| Pentacle art | Latest C++ draws one static pentacle | Staged 0–5 art (better UX; keep unless matching static) | Optional **R8** |
+| Memory copy | Updated descriptions + garbled Sight text + MEMORY TABLE | Ported (R2/R8) | done |
+| Pentacle art | Latest C++ draws one static pentacle | Staged 0–5 art (better UX; keep unless matching static) | Optional |
 | Candle5 | Key id `"C5"` | Port already uses C5 | Align only |
-| Chant → ritual | Roar + teleport after C5 awarded | Teleport + award (close) | **R8** copy/timing |
+| Chant → ritual | Roar + teleport after C5 awarded | Ported Interact + GameController copy (R8) | done |
 
 ---
 
@@ -89,7 +89,7 @@ Clue sources: ritual letters → **MALUM**; journals / newspaper → **HENRY**.
 - [x] **R5** Sanity −1/9s + jumble + SANITY command  
 - [x] **R6** Ritual letters, C4 teleports, drop fake 5-candle win  
 - [x] **R7** `endingSequence` (HENRY / MALUM / bad)  
-- [ ] **R8** Copy/backstory/string sync  
+- [x] **R8** Copy/backstory/string sync  
 - [ ] **R9** Audio (optional)  
 - [ ] **R10** Full playthrough softlock sweep  
 

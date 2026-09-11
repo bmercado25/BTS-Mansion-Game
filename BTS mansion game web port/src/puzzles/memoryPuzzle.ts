@@ -1,18 +1,23 @@
 import type { UserInterface } from "../userInterface";
 import { Puzzle } from "./puzzle";
 
+export const MEMORY_HINT = "Trust in your memory.";
+
 /**
  * Browser port of C++ MemoryPuzzle.
  * Timed letter reveal via sleep(); clear() instead of system("cls").
  */
 export class MemoryPuzzle extends Puzzle {
-  constructor(puzzleName = "Memory Puzzle") {
+  private hint: string;
+
+  constructor(puzzleName = "Memory Puzzle", hint = MEMORY_HINT) {
     super(puzzleName);
+    this.hint = hint;
   }
 
   async runPuzzle(ui: UserInterface): Promise<boolean> {
     const STARTING_LENGTH = 2;
-    const FINAL_LENGTH = 7;
+    const FINAL_LENGTH = 5;
     let toContinue = true;
 
     ui.displayPrompt(
@@ -67,6 +72,11 @@ export class MemoryPuzzle extends Puzzle {
     if (input === sequence) {
       ui.displayPrompt("The memories react");
       return true;
+    }
+
+    if (input === "HINT") {
+      ui.displayPrompt(this.hint);
+      return false;
     }
 
     ui.displayPrompt("eeeeeeeThe memories stop reacting");

@@ -17,7 +17,7 @@ export function createPlayerMemory(): Item {
 export function createSight(): Item {
   return new Item({
     name: "SIGHT",
-    description: "Allows you to see the unseen",
+    description: "Allows you to see the unseen.",
     canPickUp: true,
     canExpire: true,
   });
@@ -25,7 +25,6 @@ export function createSight(): Item {
 
 /**
  * Memory wing from latest C++ (R2: MEMORY TABLE + updated copy).
- * Ritual↔memory travel mechanics revise further in R6.
  */
 export function buildMemoryWing(): Map<string, Room> {
   const rooms = new Map<string, Room>();
@@ -56,7 +55,7 @@ export function buildMemoryWing(): Map<string, Room> {
 
   const memoryGoblet = Item.interactable(
     "MEMORY GOBLET",
-    "A transparent challice called the MEMORY GOBLET, a place where memories can be added",
+    "A transparent chalice with the logo of an eye called the MEMORY GOBLET, a place where memories can be added.",
     false,
     {
       kind: "message",

@@ -4,6 +4,14 @@ import { Puzzle } from "./puzzle";
 /** C++ answers from GameControllerClass.cpp */
 export const FOUNTAIN_ANSWERS = ["FEAR", "MEMORY", "CLOCK", "GRAVE"] as const;
 
+/** Pictograph hints from GameControllerClass.cpp */
+export const FOUNTAIN_HINTS = [
+  "You find a pictograph on the side of the fountain,it has worn away by time. You can't quite tell what it depicts. A chill runs up your spine.",
+  "You find a pictograph on the side of the fountain, it has worn away by time. You can't quite tell what it depicts. You swear you've seen it somewhere before.",
+  "You find a pictograph on the side of the fountain, it has worn away by time. You can't quite tell what it depicts. It feels like you've been here for hours.",
+  "You find a pictograph on the side of the fountain, it has worn away by time. You can't quite tell what it depicts. You get the sense that your end inexorably approaches.",
+] as const;
+
 const RIDDLES = [
   "I can't be touched, yet I can be felt. When I arrive you may yell. Run or fight its your right. What am I?",
   "I linger in shadows, in the dark I dance. I tell tales of old, leaving my mark. What am I?",
@@ -20,18 +28,21 @@ export class FountainPuzzle extends Puzzle {
   private answer2: string;
   private answer3: string;
   private answer4: string;
+  private hintList: string[];
 
   constructor(
     ans1 = FOUNTAIN_ANSWERS[0],
     ans2 = FOUNTAIN_ANSWERS[1],
     ans3 = FOUNTAIN_ANSWERS[2],
     ans4 = FOUNTAIN_ANSWERS[3],
+    hintList: string[] = [...FOUNTAIN_HINTS],
   ) {
     super("Fountain Puzzle");
     this.answer1 = ans1;
     this.answer2 = ans2;
     this.answer3 = ans3;
     this.answer4 = ans4;
+    this.hintList = [...hintList];
   }
 
   async runPuzzle(ui: UserInterface): Promise<boolean> {
@@ -62,6 +73,11 @@ export class FountainPuzzle extends Puzzle {
           "The fountain panel lights up with a soft blue light, you answered correctly!",
         );
         correctAnswerCount++;
+      } else if (input === "HINT") {
+        const hint = this.hintList[correctAnswerCount];
+        if (hint) {
+          ui.displayPrompt(hint);
+        }
       } else {
         ui.displayPrompt(
           "The fountain panel doesn't respond to your attempt, try again.",

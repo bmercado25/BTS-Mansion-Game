@@ -107,7 +107,8 @@ export function buildUpstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to touch the portrait?",
-      outputMessage: "You feel a dripping sensation on your back.",
+      outputMessage:
+        "You begin to feel a sense of subservience that quickly turns into hatred.",
     },
   );
 
@@ -118,7 +119,8 @@ export function buildUpstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to touch the portrait?",
-      outputMessage: "You feel the weight of expectation.",
+      outputMessage:
+        "A blanket of pressure to perform falls over you, suffocating you with expectations unmet.",
     },
   );
 
@@ -129,7 +131,8 @@ export function buildUpstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to touch the portrait?",
-      outputMessage: "You feel briefly unsteady.",
+      outputMessage:
+        "Your mind becomesm muddy and you stumble, catching yourself quickly.",
     },
   );
 
@@ -140,7 +143,8 @@ export function buildUpstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to touch the portrait?",
-      outputMessage: "Your fists clench involuntarily.",
+      outputMessage:
+        "A burning vengeance fills your chest as you feel great loss.",
     },
   );
 
@@ -151,7 +155,8 @@ export function buildUpstairsWorld(): Map<string, Room> {
     {
       kind: "message",
       inputMessage: "Would you like to touch the portrait?",
-      outputMessage: "You hear distant shouting.",
+      outputMessage:
+        "A whirl of strong emotion pushes you forward, in a fervorous burst.",
     },
   );
 

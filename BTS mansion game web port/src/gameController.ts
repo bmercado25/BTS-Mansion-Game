@@ -32,6 +32,7 @@ import {
 } from "./puzzles";
 import { MonsterTimer, MONSTER_GRAB_ART } from "./monster";
 import { GOOD_ENDING, NEUTRAL_ENDING, BAD_ENDING } from "./endings";
+import { BACKSTORY } from "./backstory";
 
 /**
  * GameController — mansion world + interactions + monster timer (R4).
@@ -90,10 +91,9 @@ export class GameController {
     this.running = true;
 
     this.ui.clear();
-    this.ui.displayPrompt(
-      "INSTRUCTIONS: Any word that is in all caps, such as INSPECT, PICKUP or LOUNGE, is a keyword and can be inputted for an action",
-    );
-    this.ui.displayPrompt("");
+    await this.displayBackstory();
+
+    this.ui.clear();
     this.ui.displayPrompt(
       "It's always important to stay sane in such a stressful situation. The lower your sanity gets, the less you'll understand what is going on...",
     );
@@ -108,6 +108,15 @@ export class GameController {
     this.startSanitySequence();
     this.startMonsterTimer();
     await this.gameLoop();
+  }
+
+  /** Port of GameControllerClass::displayBackstory — line-by-line waitForInput. */
+  private async displayBackstory(): Promise<void> {
+    const lines = BACKSTORY.split("\n");
+    for (const line of lines) {
+      this.ui.displayPrompt(line);
+      await this.ui.waitForInput();
+    }
   }
 
   endGame(): void {
@@ -1080,11 +1089,18 @@ export class GameController {
       return;
     }
 
+    this.ui.displayPrompt("Are you ready to traverse the maze? (YES OR NO)");
+    if ((await this.ui.userInput()) !== "YES") {
+      this.ui.clear();
+      return;
+    }
+
+    this.ui.clear();
     const solved = await this.mazePuzzle.runPuzzle(this.ui);
     if (solved) {
       this.ui.displayPrompt("You solved the Maze Puzzle!");
       this.ui.displayPrompt(
-        "You find a map of the maze at the end of this sequence of symbols, picking it up to navigate the maze.",
+        "You find a map of the maze at the end of this sequence of symbols. You pick it up to navigate the maze.",
       );
       player.addItem(createMazeMap());
       return;
@@ -1118,8 +1134,7 @@ export class GameController {
   }
 
   /**
-   * Port of InteractClass chant branch + ChantPuzzle::runPuzzle().
-   * C++ teleport is WIP — here we actually move the player to RITUAL ROOM with Candle5.
+   * Port of InteractClass chant branch + GameController C5 teleport follow-up.
    */
   private async handleChantPuzzle(player: Player): Promise<void> {
     if (this.chantPuzzle.isSolved()) {
@@ -1135,7 +1150,19 @@ export class GameController {
     this.ui.displayPrompt(
       "The monster roars as you chant, you get teleported back to the ritual room with the 5th candle in your hand",
     );
+    this.ui.displayPrompt(
+      "WORK IN PROGRESS: Functionality to teleport back to the RITUAL ROOM",
+    );
     player.addItem(createCandle5());
+
+    // GameController post-C5 sequence (actual teleport).
+    this.ui.clear();
+    this.ui.displayPrompt("The monster roars awake.");
+    await this.ui.sleep(9000);
+    this.ui.displayPrompt(
+      "You recieve the final candle, its waiting to be set down on the pentagrams edge",
+    );
+    await this.ui.sleep(4000);
 
     const ritual = this.rooms.get("RITUAL ROOM");
     if (ritual) {
@@ -1184,7 +1211,7 @@ export class GameController {
   private async handleMemoryGoblet(player: Player): Promise<void> {
     if (this.memoryGobletIsActive) {
       this.ui.displayPrompt(
-        "You dunk your head into the goblet you are granted SIGHT",
+        "You dunk your head into the goblet and you are granted SIGHT.",
       );
       player.addItem(createSight());
       await this.ui.userInput();
@@ -1193,7 +1220,7 @@ export class GameController {
 
     if (player.inInventory("YOUR MEMORY")) {
       this.ui.displayPrompt(
-        "You place YOUR MEMORY into the MEMORY GOBLET and it unleashes a blue flame as it roars to life",
+        "You place YOUR MEMORY into the MEMORY GOBLET and it unleashes a blue flame as it roars to life.",
       );
       player.useItem("YOUR MEMORY");
       this.memoryGobletIsActive = true;
