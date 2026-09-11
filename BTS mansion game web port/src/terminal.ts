@@ -5,6 +5,8 @@
 
 export type Terminal = {
   print: (line: string) => void;
+  /** Multiline block (ASCII art) rendered in a <pre>. */
+  printPre: (block: string) => void;
   clear: () => void;
   ask: (prompt?: string) => Promise<string>;
   sleep: (ms: number) => Promise<void>;
@@ -34,6 +36,14 @@ export function createTerminal(root: HTMLElement): Terminal {
     row.className = "terminal-line";
     row.textContent = line;
     output.appendChild(row);
+    scrollToBottom();
+  };
+
+  const printPre = (block: string): void => {
+    const pre = document.createElement("pre");
+    pre.className = "terminal-pre";
+    pre.textContent = block;
+    output.appendChild(pre);
     scrollToBottom();
   };
 
@@ -87,5 +97,5 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   input.focus();
 
-  return { print, clear, ask, sleep };
+  return { print, printPre, clear, ask, sleep };
 }

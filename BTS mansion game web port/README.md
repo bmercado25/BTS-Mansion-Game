@@ -5,9 +5,21 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 1 status
+## Phase 4 status
 
-Terminal shell only — `print` / `clear` / `ask` / `sleep`. No game logic yet.
+Mini game loop (`GameController`) with a tiny world:
+
+- **FOYER** ↔ **LOUNGE** (RUSTY KEY)
+- Locked **DOOR** → **LIBRARY** (needs key `BBBB`)
+
+Commands: room/exit names, `INSPECT`, `PICKUP`, `INVENTORY`, `QUIT`
+
+## Critical path
+
+1. `START`
+2. `LOUNGE` → `INSPECT` / `PICKUP` → `RUSTY KEY`
+3. `FOYER` → `DOOR` (unlock) → `LIBRARY`
+4. `INVENTORY` · `QUIT`
 
 ## Run
 
@@ -18,8 +30,3 @@ npm run dev
 ```
 
 Then open the URL Vite prints (usually `http://localhost:5173`).
-
-Demo commands:
-- type anything → echoed back
-- `CLEAR` → wipe the screen
-- `QUIT` → stop the demo loop
