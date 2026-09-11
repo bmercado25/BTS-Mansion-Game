@@ -2,6 +2,7 @@
 #include "InteractClass.h"
 #include<iostream>
 #include<string>
+#include <windows.h>
 
 using namespace std;
 
@@ -42,9 +43,10 @@ looks in their inventory.
 		value = 0;
 		canPickUp = pickUp;
 		interaction = interact;
+		soundFileName = "test";
 	}
 
-	ItemClass::ItemClass(std::string n, std::string desc, bool pickUp) 		//Constructor for a note
+	ItemClass::ItemClass(std::string n, std::string desc, bool pickUp, std::string fileName) 		//Constructor for a note
 	{
 		name = n;
 		description = desc;
@@ -53,7 +55,9 @@ looks in their inventory.
 		value = 0;
 		canPickUp = pickUp;
 		interaction = nullptr;
+		soundFileName = fileName;
 	}
+
 
 	ItemClass::ItemClass(string n, string desc, string id, bool consumable, bool pickUp) //Constructor for a key
 	{
@@ -64,6 +68,7 @@ looks in their inventory.
 		value = 0;
 		canPickUp = pickUp;
 		interaction = nullptr;
+
 	}
 
 	ItemClass::ItemClass(string n, string desc, int val, bool consumable, bool pickUp) //Constructor for a consumable
@@ -75,6 +80,7 @@ looks in their inventory.
 		keyID = " ";
 		canPickUp = pickUp;
 		interaction = nullptr;
+
 	}
 	ItemClass::ItemClass(string n, string desc, bool pickUp, bool expire) {
 		name = n;
@@ -84,8 +90,24 @@ looks in their inventory.
 		keyID = " ";
 		canPickUp = pickUp;
 		interaction = nullptr;
-		canExpire = expire; 
+		canExpire = expire;
 	}
+
+	ItemClass::ItemClass(string n, string desc, string id, bool consumable, bool pickUp, string fileName) //Constructor for a key with sound
+	{
+		name = n;
+		description = desc;
+		keyID = id;
+		isConsumable = consumable;
+		value = 0;
+		canPickUp = pickUp;
+		interaction = nullptr;
+		soundFileName = fileName;
+	}
+
+
+
+
 	string ItemClass::getName()
 	{
 		return name; //Returns item name
@@ -159,5 +181,20 @@ looks in their inventory.
 
 	void ItemClass::setInteraction(InteractClass* interact)
 	{
-		interaction = interact;
+	 	interaction = interact;
+	}
+
+	void ItemClass::playItemSound() {
+		// Convert std::string to std::wstring for Unicode compatibility
+		std::wstring wideSoundFile(soundFileName.begin(), soundFileName.end());
+
+		// Use the wide string in PlaySound
+		PlaySound(wideSoundFile.c_str(), NULL, SND_FILENAME | SND_ASYNC);
+	}
+
+	std::string ItemClass::getSoundFileName() {
+		
+		//cout << "Getting sound file name" << endl;
+		return soundFileName;
+
 	}

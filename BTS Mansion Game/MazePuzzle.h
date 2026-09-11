@@ -7,15 +7,19 @@
 #include "UserInterfaceClass.h"
 #include <string>
 #include <vector>
+#include <random>
 
 
 class MazePuzzle : public Puzzle {
 private:
-	std::vector <std::string> correctSequence;
+	std::vector <std::string> symbolKey;
+	std::vector <std::string> incorrectSymbols;
 
 public:
 	MazePuzzle(); //Default constructor
-	MazePuzzle(std::vector<std::string> seq);
+	MazePuzzle(std::vector<std::string> key, std::vector<std::string> inc);
+
+	int GenerateRandomNumber(int min, int max);
 
 	void runPuzzle(); //Runs puzzle
 };

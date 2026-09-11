@@ -17,7 +17,7 @@ private:
 
 public:
 	GalleryPuzzle(); //Default constructor
-	GalleryPuzzle(std::vector <ItemClass> ports, std::vector <ItemClass> answer);
+	GalleryPuzzle(std::vector <ItemClass> ports, std::vector <ItemClass> answer, std::string hint);
 
 	void runPuzzle(); //Runs puzzle
 };

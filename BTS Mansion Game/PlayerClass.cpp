@@ -158,7 +158,7 @@ std::string PlayerClass::searchForKey(std::string id)
 		}
 	}
 
-	return "no key in inventory";
+	return "No key in your inventory.";
 }
 
 bool PlayerClass::searchForCandle()

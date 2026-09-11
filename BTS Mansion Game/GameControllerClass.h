@@ -17,6 +17,10 @@ class GameControllerClass
 	private: 
 	UserInterfaceClass UI;
 	std::string backstory;
+	std::string goodEnding;
+	std::string badEnding;
+	std::string neutralEnding;
+	bool isInProtectedAction = false; 
 
 public:
 	GameControllerClass(); 
@@ -30,7 +34,7 @@ public:
 	void displayBackstory();
 	//function to display backstory to user
 	void endGame();
-	//mber function which will exit game loop if chosen
+	//default mber function which will exit game loop if chosen
 	void pickUpNoteSequence(PlayerClass& myPlayer); 
 	//function that displays option to pick up note in room A
 	void displayInventory();
@@ -39,9 +43,14 @@ public:
 	//prompts to view inventory
 	//Function that displays option to interact ,read or exit the statue.
 	void handleDoors(PlayerClass& player, RoomClass& currentRoom, const std::string& targetRoom, const std::list<std::string>& newRoomOptions, std::unordered_map<std::string, RoomClass>& rooms, const std::string& openMessage, std::string command);
-
+	void updateSanityGrabbed(PlayerClass& player);
 	void sanitySequence(PlayerClass& userPlayer, std::atomic<bool>& running); // function that handles sanity output
 	void updateSanity(PlayerClass& player, int amount); //Function that changes player sanity by passing an integer to add to the value
+	void playTeleportSequence(); // function that plays the text sequence
+	void endingSequence(UserInterfaceClass UI); //the ending sequence of the game
+
+	void endGame(std::string flavorText); // overloaded endGame function that takes string instead of default text
+	bool inProtectedState(); 
 };
 
 #endif

@@ -19,6 +19,7 @@ private:
 	RoomClass* currentRoom; //Stores the current room the player is currently in
 	std::vector<ItemClass> Inventory; //Vector Array of Item Class objects for inventory
 	
+	
 public:
 	PlayerClass();
 	PlayerClass(RoomClass &room); //constuctor (set to default values)
@@ -48,6 +49,7 @@ public:
 	bool searchForCandle(); //returns whether candle is in user inventory
 	bool inInventory(std::string name, std::string id) const;	//Get the id for the candle 
 	void useItem(std::string itemName, std::string id);	//Use item with id for candle 
+
 #endif
 };
 #endif

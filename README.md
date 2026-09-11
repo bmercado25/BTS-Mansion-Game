@@ -10,7 +10,6 @@ This project is an immersive text-based horror game featuring complex puzzle mec
 
 ### Key Features
 
-- **Proprietary Game Engine** - Game engine specifically built using requirements needed for our project.
 - **Complex Puzzle System** - Multiple unique puzzle types including riddle-based fountains, memory challenges, gallery sequences, and maze navigation
 - **Dynamic Monster Mechanics** - Time-based monster system with protected states, sanity management, and jump scares with audio
 - **Sophisticated Inventory Management** - Item collection, key combinations, consumable items, and inventory persistence
@@ -79,3 +78,7 @@ This project was developed collaboratively by **7 engineers** over **3 months** 
 - **Code Reviews**: Collaborative development and quality assurance
 - **Modular Architecture**: Allowing parallel development across team members
 - **Version Control**: Coordinated development using Git workflows
+
+## 📫 Contact Me
+
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Joseph%20Cusumano-blue?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/josephmcusumano)

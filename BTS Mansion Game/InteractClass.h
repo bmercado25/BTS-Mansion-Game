@@ -4,10 +4,12 @@
 
 #include<iostream>
 #include<string>
+#include <sstream>
 
 #include "PickUpItemClass.h" //Include header for PickUpItemClass
 #include "UserInterfaceClass.h" // Included header for UserInterFaceClass
 #include "Puzzle.h"
+#include "GreaterLibraryPuzzle.h"
 #include "GalleryPuzzle.h"
 #include "MirrorPuzzle.h"
 #include "FountainPuzzle.h"
@@ -22,6 +24,7 @@ private:
 	std::string interactMessage;
 	bool interacted;
 	bool isPuzzle;
+	GreaterLibraryPuzzle gPuzzle = GreaterLibraryPuzzle();
 	GalleryPuzzle puzzle = GalleryPuzzle();
 	MirrorPuzzle mPuzzle = MirrorPuzzle();
 	FountainPuzzle fPuzzle = FountainPuzzle();
@@ -34,6 +37,7 @@ public:
 	//Constructor
 	InteractClass();
 	InteractClass(std::string inMssg, std::string intMssg); //Constructor taking input and interact message
+	InteractClass(std::string inMssg, std::string intMssg, GreaterLibraryPuzzle puzz); //Constructor taking input and interact message and greater library puzzle
 	InteractClass(std::string inMssg, std::string intMssg, GalleryPuzzle puzz); //Constructor taking input and interact message and gallery puzzle
 	InteractClass(std::string inMssg, std::string intMssg, MirrorPuzzle puzz); //Constructor taking input and interact message and gallery puzzle
 	InteractClass(std::string inMssg, std::string intMssg, FountainPuzzle puzz); //Constructor taking input and interact message and fountain puzzle
@@ -49,7 +53,7 @@ public:
 	bool getIsPuzzle();
 	//function to interact with object or statue
 	void runInteraction();
-	void runInteraction(PlayerClass& player, ItemClass& galleryItm, ItemClass& mirrorItm, ItemClass& masterItm, ItemClass& fountainItem, ItemClass& mazeItem, ItemClass& memItem, ItemClass& chantItem);
+	void runInteraction(PlayerClass& player, ItemClass& greaterLibraryItem, ItemClass& galleryItm, ItemClass& mirrorItm, ItemClass& masterItm, ItemClass& fountainItem, ItemClass& mazeItem, ItemClass& memItem, ItemClass& chantItem);
 	// function to display object description
 	void displayDescription();
 	// function to pick up an item

@@ -14,6 +14,14 @@ InteractClass::InteractClass(std::string inMssg, std::string interactMssg) {
     isPuzzle = false;
 }
 
+InteractClass::InteractClass(std::string inMssg, std::string interactMssg, GreaterLibraryPuzzle puzz) { //Constructor for greater library puzzle
+    inputMessage = inMssg;
+    interactMessage = interactMssg;
+    interacted = false;
+    gPuzzle = puzz;
+    isPuzzle = true;
+}
+
 InteractClass::InteractClass(std::string inMssg, std::string interactMssg, GalleryPuzzle puzz) { //Constructor for gallery puzzle
     inputMessage = inMssg;
     interactMessage = interactMssg;
@@ -107,27 +115,54 @@ void InteractClass::runInteraction() {
     }
     else {
         ui.displayPrompt(inputMessage);
-        ui.displayPrompt("Enter action (INTERACT): ");
+        ui.displayPrompt("Enter INTERACT: ");
         ui.userInput();
 
         if (ui.getCurrentInput() == "INTERACT")
         {
             //output interaction message
-            ui.displayPrompt(interactMessage);
+            std::istringstream stm(interactMessage);
+            std::string line;
+
+            while (std::getline(stm, line)) { //algorithm to display story line by line, user will press enter via waitForInput() function form UI class
+                ui.displayPrompt(line);
+                ui.waitForInput();
+            }
+            system("cls");
+            //ui.displayPrompt(interactMessage);
+            system("cls");
         }
         else {
             ui.displayPrompt("You walk away.");
+            ui.waitForInput();
+            system("cls");
         }
     }
     
 }
 
-void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, ItemClass& mirrorItm, ItemClass& masterItm, ItemClass& fountainItem, ItemClass& mazeItem, ItemClass& memoryItem, ItemClass& chantItem) { //Function to run an interaction with items and picking up
+void InteractClass::runInteraction(PlayerClass& player, ItemClass& greaterLibraryItem, ItemClass& galleryItm, ItemClass& mirrorItm, ItemClass& masterItm, ItemClass& fountainItem, ItemClass& mazeItem, ItemClass& memoryItem, ItemClass& chantItem) { //Function to run an interaction with items and picking up
     UserInterfaceClass ui;
     //input interaction message;
     //simulate user input demonstrate
     if (isPuzzle == true) //Check if interaction is a puzzle
     {
+        if (gPuzzle.getDescription() == "Greater Library Puzzle") //if in greater library puzzle
+        {
+            if (gPuzzle.isSolved() == false) //Is puzzle solved
+            {
+                gPuzzle.runPuzzle();
+
+                if (gPuzzle.isSolved() == true) //If puzzle was solved
+                {
+                    player.addItem(greaterLibraryItem); //Add key reward to inventory
+                }
+            }
+            else
+            {
+                ui.displayPrompt("This has already been unlocked."); //Already solved
+            }
+        }
         if (puzzle.getDescription() == "Gallery Puzzle") //if in gallery puzzle execute gallery puzzle
         {
             if (puzzle.isSolved() == false) //Is the puzzle solved
@@ -146,7 +181,8 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, I
                         {
                             if (item.getName() == "MIRROR HALF KEY")
                             {
-                                player.removeItem(item.getName());
+                                player.useKey(item.getKeyID());
+                                player.useKey(galleryItm.getKeyID()); //Removing both keys
                                 ui.displayPrompt("You put both halves of your key together to form the MASTER BEDROOM KEY!");
                                 player.addItem(masterItm);
                                 return;
@@ -180,7 +216,8 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, I
                         {
                             if (item.getName() == "GALLERY HALF KEY")
                             {
-                                player.removeItem(item.getName());
+                                player.useKey(item.getKeyID());
+                                player.useKey(mirrorItm.getKeyID());
                                 ui.displayPrompt("You put both halves of your key together to form the MASTER BEDROOM KEY!");
                                 player.addItem(masterItm);
                                 return;
@@ -217,23 +254,33 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, I
             }
 
             else if (maPuzzle.getDescription() == "Maze Puzzle") {//if in maze puzzle
-                if (maPuzzle.isSolved() == false)
+                
+                ui.displayPrompt("Are you ready to traverse the maze? (YES OR NO)");
+                if (ui.userInput() == "YES")
                 {
-                    maPuzzle.runPuzzle(); //Run maze puzzle
-                    if (maPuzzle.isSolved())
+                    system("cls");
+                    if (maPuzzle.isSolved() == false)
                     {
-                        ui.displayPrompt("You solved the Maze Puzzle!");
-                        ui.displayPrompt("You find a map of the maze at the end of this sequence of symbols, picking it up to navigate the maze.");
-                        player.addItem(mazeItem);
+                        maPuzzle.runPuzzle(); //Run maze puzzle
+                        if (maPuzzle.isSolved())
+                        {
+                            ui.displayPrompt("You solved the Maze Puzzle!");
+                            ui.displayPrompt("You find a map of the maze at the end of this sequence of symbols. You pick it up to navigate the maze.");
+                            player.addItem(mazeItem);
+                        }
+                        else
+                        {
+                            ui.displayPrompt("You failed the Maze Puzzle.");
+                        }
                     }
                     else
                     {
-                        ui.displayPrompt("You failed the Maze Puzzle.");                        
+                        ui.displayPrompt("This item seems dormant.");
                     }
                 }
                 else
                 {
-                    ui.displayPrompt("This item seems dormant.");
+                    system("cls");
                 }
             }
             else if (memPuzzle.getDescription() == "Memory Puzzle") {
@@ -275,7 +322,7 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, I
         
     else {
         ui.displayPrompt(inputMessage);
-        ui.displayPrompt("Enter action (INTERACT): ");
+        ui.displayPrompt("Enter INTERACT: ");
         ui.userInput();
 
         if (ui.getCurrentInput() == "INTERACT")
@@ -286,6 +333,7 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& galleryItm, I
         }
         else {
             ui.displayPrompt("You walk away.");
+         
         }
     }
 

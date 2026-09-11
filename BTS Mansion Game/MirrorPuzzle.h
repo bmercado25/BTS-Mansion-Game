@@ -18,6 +18,7 @@ private:
 public:
 	MirrorPuzzle(); //Default constructor
 	MirrorPuzzle(std::vector <std::string> correctAns);
+	MirrorPuzzle(std::vector <std::string> correctAns, std::string hint);
 
 	void runPuzzle(); //Runs puzzle
 };

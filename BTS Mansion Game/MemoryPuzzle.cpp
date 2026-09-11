@@ -3,11 +3,13 @@
 MemoryPuzzle::MemoryPuzzle() {
 	_description = " ";
 	_isSolved = false;
+	_hint = "Trust in your memory.";
 }
 
 MemoryPuzzle::MemoryPuzzle(std::string puzzleName) {
 	_description = puzzleName;
 	_isSolved = false;
+	_hint = "Trust in your memory.";
 }
 
 
@@ -19,20 +21,19 @@ void MemoryPuzzle::runPuzzle() {
 	std::string input; //Input from user
 
 	const int STARTING_LENGTH = 2; //starting size for string of letters
-	const int FINAL_LENGTH = 7; //ending size for string of letters
+	const int FINAL_LENGTH = 5; //ending size for string of letters
 	bool toContinue = true; //boolean that will listen to the display letter function and see if it returns true or false
 
 	ui.displayPrompt("You place your hand on the tank, they are testing your memory, you must recite the memories that they tell you"); //starting text
 
 	for (int i = STARTING_LENGTH; i <= FINAL_LENGTH && toContinue; i++) { //going through each length but also checking to make sure displayletters didnt return false
 		std::string sequence = randomLetterString(i); //storing current string
-
 		toContinue = displayLetters(sequence,ui); //passing in the current sequence and the ui to the display letters
-
 
 	}
 
 	if (toContinue) { //if the code makes it to this point, that means the user succeeded and the puzzle is solved
+		system("cls");
 		_isSolved = true; 
 	}
 
@@ -69,9 +70,13 @@ bool MemoryPuzzle::displayLetters(std::string& sequence, UserInterfaceClass ui) 
 
 	ui.displayPrompt("Recite the memory");
 	input = ui.userInput();
-
 	if (input == sequence) {
 		ui.displayPrompt("The memories react");  //user succeeded
+	}
+	else if (input == "HINT")
+	{
+		ui.displayPrompt(_hint);
+		return false;
 	}
 	else {
 		ui.displayPrompt("eeeeeeeThe memories stop reacting"); //user failed 
