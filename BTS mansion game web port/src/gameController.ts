@@ -39,7 +39,6 @@ export class GameController {
   private running = false;
   private kitchenDoorOpen = false;
   private diningHallDoorOpen = false;
-  private studyPuzzleSolved = false;
   private mirrorPuzzle = new MirrorPuzzle();
   private fountainPuzzle = new FountainPuzzle();
   private mazePuzzle = new MazePuzzle();
@@ -60,7 +59,6 @@ export class GameController {
     this.rooms = buildMansionWorld();
     this.kitchenDoorOpen = false;
     this.diningHallDoorOpen = false;
-    this.studyPuzzleSolved = false;
     this.mirrorPuzzle = new MirrorPuzzle();
     this.fountainPuzzle = new FountainPuzzle();
     this.mazePuzzle = new MazePuzzle();
@@ -470,10 +468,17 @@ export class GameController {
       return;
     }
 
-    if (command === "PUZZLE") {
+    if (command === "STUDY DOOR") {
       this.ui.clear();
-      await this.handleStudyPuzzle(currentRoom);
+      this.handleDoors(
+        player,
+        currentRoom,
+        ["LIBRARY", "BALLROOM", "STUDY"],
+        command,
+        "You unlock the door with the study key, unlocking the study.",
+      );
       this.syncRoom(currentRoom);
+      player.setRoom(currentRoom);
       return;
     }
 
@@ -502,7 +507,7 @@ export class GameController {
       this.handleDoors(
         player,
         currentRoom,
-        ["SHED", "FOUNTAIN", "HEDGE MAZE"],
+        ["SHED", "FOUNTAIN", "HEDGE MAZE", "GRAVEYARD"],
         command,
         "You pour the holy water on the dark force blocking the entrance to the hedge maze, granting yourself access as the dark sludge burns away.",
       );
@@ -583,27 +588,6 @@ export class GameController {
       this.ui.displayPrompt("The door is locked.");
     } else {
       this.ui.displayPrompt("You unlocked the door!");
-    }
-  }
-
-  private async handleStudyPuzzle(currentRoom: Room): Promise<void> {
-    if (this.studyPuzzleSolved) {
-      this.ui.displayPrompt("The puzzle is already solved. You can enter the STUDY.");
-      return;
-    }
-
-    this.ui.displayPrompt(
-      "WORK IN PROGRESS: The door is locked there seems to be a puzzle before entering. Solve this puzzle.",
-    );
-    this.ui.displayPrompt("The secret word is YDDID");
-    const puzzleAnswer = (await this.ui.userInput()).trim().toUpperCase();
-
-    if (puzzleAnswer === "YDDID") {
-      this.ui.displayPrompt("You solved the puzzle you can now enter the study");
-      this.studyPuzzleSolved = true;
-      currentRoom.setRoomOptions(["LIBRARY", "STUDY"]);
-    } else {
-      this.ui.displayPrompt("That is not the correct answer. The door remains locked.");
     }
   }
 

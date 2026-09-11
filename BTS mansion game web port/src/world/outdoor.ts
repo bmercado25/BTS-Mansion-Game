@@ -3,7 +3,7 @@ import { Door, Item, Room } from "../domain";
 export function createHolyWater(): Item {
   return Item.key(
     "HOLY WATER",
-    "Pristine bottle of blessed water",
+    "A pristine bottle of blessed water.",
     "MAZEKEY",
     true,
     true,
@@ -13,7 +13,7 @@ export function createHolyWater(): Item {
 export function createMazeMap(): Item {
   return Item.key(
     "MAZE MAP",
-    "Map outlining the layout of the maze, able to lead you to the exit.",
+    "A map outlining the layout of the maze that can lead you to the exit.",
     "MAZEEXITKEY",
     true,
     true,
@@ -31,7 +31,7 @@ export function createCandle4(): Item {
 }
 
 /**
- * Outdoor / garden wing from C++ GameControllerClass.cpp (Phase 5c).
+ * Outdoor / garden wing from latest C++ (R2: graveyard, shed hide, newspaper).
  */
 export function buildOutdoorWorld(): Map<string, Room> {
   const rooms = new Map<string, Room>();
@@ -53,15 +53,27 @@ export function buildOutdoorWorld(): Map<string, Room> {
 
   const shedBottle = Item.consumable(
     "BOTTLE OF PILLS",
-    "a BOTTLE OF PILLS with a faded label",
+    "A BOTTLE OF PILLS with a faded label.",
     50,
     true,
     true,
   );
 
+  const journal5 = Item.note(
+    "JOURNAL 5",
+    "A crumpled page which reads JOURNAL 5: Layla is dead. Henry killed her and my poor son Joseph. I found her journal and felt I shouldnt leave it without an ending. What did I do to deserve this? Henry's son, Lester sent me a letter that he would come visit in light of recent events from the past month. I hope to learn what happened to Henry and get some closure.",
+    true,
+  );
+
+  const newspaperClipping = Item.note(
+    "NEWSPAPER CLIPPING",
+    "A NEWSPAPER CLIPPING with headline Mansion Murder! Crane Smith murdered in his new Mansion two months after his family were murdered. Rumors are the son of first murderer, HENRY JENKINS, whose named LESTER JENKINS, was the killer. However, nothing has been confirmed as of late.",
+    true,
+  );
+
   const fountainPanel = Item.interactable(
     "FOUNTAIN PANEL",
-    "A FOUNTAIN PANEL in the base of the fountain seems like you could push it like a button...",
+    "A FOUNTAIN PANEL is at the base of the fountain, it seems like you could push it as if it were a button...",
     false,
     {
       kind: "puzzle",
@@ -73,7 +85,7 @@ export function buildOutdoorWorld(): Map<string, Room> {
 
   const lantern = Item.interactable(
     "LANTERN",
-    "A LANTERN to help you see while exploring the maze...",
+    "A LANTERN to help you see while you are exploring the maze...",
     false,
     {
       kind: "puzzle",
@@ -84,15 +96,48 @@ export function buildOutdoorWorld(): Map<string, Room> {
     },
   );
 
+  const tombstone = (n: number, output: string) =>
+    Item.interactable(`TOMBSTONE ${n}`, "", false, {
+      kind: "message",
+      inputMessage: `Would you like to look at tombstone ${n}?`,
+      outputMessage: output,
+    });
+
   rooms.set(
     "GARDEN",
     new Room({
       description:
-        "You step outside into a serene garden, filled with vibrant flowers and lush greenery. The moon shines brightly above, and you can hear the gentle rustling of leaves in the breeze. There's a feeling of tranquility here, but also an underlying sense of mystery, as if the garden holds secrets waiting to be uncovered.",
+        "You step outside into a serene garden, filled with vibrant flowers and lush greenery. The moon shines brightly above and you can hear the gentle rustling of leaves in the breeze. There's a feeling of tranquility here, but also an underlying sense of mystery, as if the garden holds secrets waiting to be uncovered.",
       name: "GARDEN",
-      exits: ["SHED", "FOUNTAIN", "BLOCKED HEDGE MAZE"],
+      exits: ["SHED", "FOUNTAIN", "BLOCKED HEDGE MAZE", "GRAVEYARD"],
       doors: [blockedMazeDoor],
       items: [],
+    }),
+  );
+
+  rooms.set(
+    "GRAVEYARD",
+    new Room({
+      description:
+        "You enter a shadowy graveyard with headstones scattered across the mist-covered ground. The air is thick with an eerie silence, broken only by the distant hoot of an owl. A chill runs down your spine as you realize this place holds secrets long forgotten.",
+      name: "GRAVEYARD",
+      exits: ["GARDEN"],
+      items: [
+        tombstone(1, "The engraving is too worn to read."),
+        tombstone(2, "The engraving is too worn to read."),
+        tombstone(3, "The engraving is too worn to read."),
+        tombstone(4, "The engraving is too worn to read."),
+      ],
+    }),
+  );
+
+  rooms.set(
+    "SHED CLOSET",
+    new Room({
+      description: "You are in the shed closet. You are safe from any threats.",
+      name: "SHED CLOSET",
+      exits: ["SHED"],
+      isSafe: true,
     }),
   );
 
@@ -100,10 +145,10 @@ export function buildOutdoorWorld(): Map<string, Room> {
     "SHED",
     new Room({
       description:
-        "You enter a small, dusty shed filled with various gardening tools and supplies. The air is thick with the smell of soil and wood. A single window allows a sliver of moonlight to illuminate the cobwebs in the corners.",
+        "You enter a small, dusty shed filled with various gardening tools and supplies. The air is thick with the smell of soil and wood. A single window allows a sliver of moonlight to illuminate the cobwebs in the corners. There is a small closet can be used to hide from the monster.",
       name: "SHED",
-      exits: ["GARDEN"],
-      items: [shedBottle],
+      exits: ["GARDEN", "SHED CLOSET"],
+      items: [shedBottle, journal5],
     }),
   );
 
@@ -122,7 +167,7 @@ export function buildOutdoorWorld(): Map<string, Room> {
     "HEDGE MAZE",
     new Room({
       description:
-        "You find yourself in a sprawling hedge maze. Tall hedges tower around you, creating a sense of disorientation. The paths are winding, and the sound of rustling leaves fills the air. You sense that there might be hidden corners to explore.",
+        "You find yourself in a sprawling hedge maze. Tall hedges tower around you, creating a sense of disorientation. The paths are winding and the sound of rustling leaves fills the air. You sense that there might be hidden corners to explore.",
       name: "HEDGE MAZE",
       exits: ["GARDEN", "MAZE EXIT"],
       doors: [mazeExitDoor()],
@@ -134,11 +179,11 @@ export function buildOutdoorWorld(): Map<string, Room> {
     "HEDGE MAZE EXIT",
     new Room({
       description:
-        "You exit the hedge maze into a small clearing with a bird fountain, this place seems very calm, almost safe.",
+        "You exit the hedge maze into a small clearing with a bird fountain. This place seems very calm, almost safe.",
       name: "HEDGE MAZE EXIT",
       exits: ["HEDGE MAZE"],
       doors: [mazeExitDoor()],
-      items: [createCandle4()],
+      items: [createCandle4(), newspaperClipping],
     }),
   );
 

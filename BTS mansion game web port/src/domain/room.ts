@@ -8,12 +8,14 @@ export type RoomOptions = {
   doors?: Door[];
   items?: Item[];
   isRitual?: boolean;
+  /** Hide spot — monster timer will respect this in R4. */
+  isSafe?: boolean;
   hasConditionalDescription?: boolean;
   conditionalDescription?: string;
 };
 
 /**
- * Browser port of C++ RoomClass (puzzle wiring deferred).
+ * Browser port of C++ RoomClass.
  */
 export class Room {
   private roomDescription: string;
@@ -22,6 +24,7 @@ export class Room {
   private roomDoors: Door[];
   private items: Item[];
   private isRitual: boolean;
+  private isSafe: boolean;
   private candles: number;
   private hasConditionalDescription: boolean;
   private conditionalRoomDescription: string;
@@ -34,6 +37,7 @@ export class Room {
     this.roomDoors = [...(options.doors ?? [])];
     this.items = [...(options.items ?? [])];
     this.isRitual = options.isRitual ?? false;
+    this.isSafe = options.isSafe ?? false;
     this.candles = 0;
     this.hasConditionalDescription = options.hasConditionalDescription ?? false;
     this.conditionalRoomDescription = options.conditionalDescription ?? "";
@@ -139,6 +143,14 @@ export class Room {
 
   returnRitualStatus(): boolean {
     return this.isRitual;
+  }
+
+  getIsSafe(): boolean {
+    return this.isSafe;
+  }
+
+  setIsSafe(safe: boolean): void {
+    this.isSafe = safe;
   }
 
   getHasConditionalDescription(): boolean {
