@@ -17,6 +17,7 @@ import {
   createMazeMap,
   createMirrorHalfKey,
 } from "./world";
+import { MirrorPuzzle } from "./puzzles";
 
 /**
  * GameController — mansion world + interactions (Phase 6).
@@ -30,9 +31,9 @@ export class GameController {
   private diningHallDoorOpen = false;
   private studyPuzzleSolved = false;
   private galleryPuzzleSolved = false;
-  private mirrorPuzzleSolved = false;
   private fountainPuzzleSolved = false;
   private mazePuzzleSolved = false;
+  private mirrorPuzzle = new MirrorPuzzle();
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -44,9 +45,9 @@ export class GameController {
     this.diningHallDoorOpen = false;
     this.studyPuzzleSolved = false;
     this.galleryPuzzleSolved = false;
-    this.mirrorPuzzleSolved = false;
     this.fountainPuzzleSolved = false;
     this.mazePuzzleSolved = false;
+    this.mirrorPuzzle = new MirrorPuzzle();
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -541,6 +542,10 @@ export class GameController {
     }
 
     if (interaction.kind === "puzzle") {
+      if (interaction.puzzleId === "mirror") {
+        await this.handleMirrorPuzzle(player);
+        return;
+      }
       await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
@@ -551,7 +556,30 @@ export class GameController {
   }
 
   /**
-   * Puzzle modules not ported yet — stubs still award progression items so map gating works.
+   * Port of InteractClass mirror branch + MirrorPuzzle::runPuzzle().
+   * C++ overloaded runInteraction runs the mirror puzzle directly (no YES gate).
+   */
+  private async handleMirrorPuzzle(player: Player): Promise<void> {
+    if (this.mirrorPuzzle.isSolved()) {
+      this.ui.displayPrompt("You already solved this puzzle.");
+      return;
+    }
+
+    const solved = await this.mirrorPuzzle.runPuzzle(this.ui);
+    if (solved) {
+      this.ui.displayPrompt(
+        "You solved the Mirror Puzzle! You recieved a half of a key in your inventory.",
+      );
+      player.addItem(createMirrorHalfKey());
+      this.tryCombineMasterKey(player);
+      return;
+    }
+
+    this.ui.displayPrompt("You failed to solve the mirror puzzle");
+  }
+
+  /**
+   * Remaining puzzle modules not ported yet — stubs still award progression items.
    */
   private async handlePuzzleStub(
     player: Player,
@@ -576,25 +604,8 @@ export class GameController {
     }
 
     if (puzzleId === "mirror") {
-      if (this.mirrorPuzzleSolved) {
-        this.ui.displayPrompt("You already solved this puzzle.");
-        return;
-      }
-      this.ui.displayPrompt("Do you want to solve the three word combination? (YES or NO)");
-      const answer = (await this.ui.userInput()).trim().toUpperCase();
-      if (answer !== "YES") {
-        this.ui.displayPrompt("You walk away.");
-        return;
-      }
-      this.ui.displayPrompt(
-        "Puzzle not ported yet — granting MIRROR HALF KEY for exploration.",
-      );
-      this.ui.displayPrompt(
-        "You solved the Mirror Puzzle! You recieved a half of a key in your inventory.",
-      );
-      this.mirrorPuzzleSolved = true;
-      player.addItem(createMirrorHalfKey());
-      this.tryCombineMasterKey(player);
+      // Real solver lives in handleMirrorPuzzle; keep fallback defensive.
+      await this.handleMirrorPuzzle(player);
       return;
     }
 

@@ -5,14 +5,15 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 6 status
+## Phase 7a status
 
-Non-puzzle `Interact` flows match C++ `InteractClass::runInteraction()`:
+**Mirror puzzle** ported (`COMBINATION LOCK` upstairs):
 
-- Prompt → `Enter action (INTERACT):` → `INTERACT` shows result / else walk away
-- Covers statue, dead bodies, kitchen counter, portraits, storybook
-- `METAL SAFE` keeps the C++ inspect special-case (code `8691`)
-- Puzzle starters remain stubs (Phase 7)
+1. `INSPECT` → `COMBINATION LOCK`
+2. Enter three words (exact C++ answers): `MOONLIGHT` · `FOREST GREEN` · `BLACK`
+3. Success → `MIRROR HALF KEY` (combines with gallery half into `MASTER KEY`)
+
+Still stubbed: gallery, fountain, maze, chant, memory
 
 ## Run
 
