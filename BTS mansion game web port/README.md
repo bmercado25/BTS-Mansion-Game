@@ -5,15 +5,15 @@ Browser port of **BTS Mansion Game**.
 - C++ original (source of truth): [`../BTS Mansion Game`](../BTS%20Mansion%20Game)
 - Stack: **Vite + TypeScript** (vanilla)
 
-## Phase 7b status
+## Phase 7c status
 
-**Fountain puzzle** ported (`FOUNTAIN PANEL`):
+**Maze puzzle** ported (`LANTERN` in HEDGE MAZE):
 
-Answers (exact): `FEAR` · `MEMORY` · `CLOCK` · `GRAVE`  
-Five wrong attempts max → soft red fail text  
-Success → flask text + `HOLY WATER`
+1. Shows sequence: `RABBIT` · `CROW` · `SNAKE` · `SCARAB`
+2. Re-enter that sequence (exact)
+3. Success → `MAZE MAP` · Fail → fail message
 
-**Mirror** also live. Still stubbed: gallery, maze, chant, memory
+Also live: Mirror, Fountain. Still stubbed: gallery, chant, memory
 
 ## Run
 

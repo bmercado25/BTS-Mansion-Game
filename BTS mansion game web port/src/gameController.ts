@@ -17,7 +17,7 @@ import {
   createMazeMap,
   createMirrorHalfKey,
 } from "./world";
-import { MirrorPuzzle, FountainPuzzle } from "./puzzles";
+import { MirrorPuzzle, FountainPuzzle, MazePuzzle } from "./puzzles";
 
 /**
  * GameController — mansion world + interactions (Phase 6).
@@ -31,9 +31,9 @@ export class GameController {
   private diningHallDoorOpen = false;
   private studyPuzzleSolved = false;
   private galleryPuzzleSolved = false;
-  private mazePuzzleSolved = false;
   private mirrorPuzzle = new MirrorPuzzle();
   private fountainPuzzle = new FountainPuzzle();
+  private mazePuzzle = new MazePuzzle();
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -45,9 +45,9 @@ export class GameController {
     this.diningHallDoorOpen = false;
     this.studyPuzzleSolved = false;
     this.galleryPuzzleSolved = false;
-    this.mazePuzzleSolved = false;
     this.mirrorPuzzle = new MirrorPuzzle();
     this.fountainPuzzle = new FountainPuzzle();
+    this.mazePuzzle = new MazePuzzle();
 
     const foyer = this.rooms.get("FOYER");
     if (!foyer) {
@@ -550,6 +550,10 @@ export class GameController {
         await this.handleFountainPuzzle(player);
         return;
       }
+      if (interaction.puzzleId === "maze") {
+        await this.handleMazePuzzle(player);
+        return;
+      }
       await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
@@ -599,6 +603,28 @@ export class GameController {
   }
 
   /**
+   * Port of InteractClass maze branch + MazePuzzle::runPuzzle().
+   */
+  private async handleMazePuzzle(player: Player): Promise<void> {
+    if (this.mazePuzzle.isSolved()) {
+      this.ui.displayPrompt("This item seems dormant.");
+      return;
+    }
+
+    const solved = await this.mazePuzzle.runPuzzle(this.ui);
+    if (solved) {
+      this.ui.displayPrompt("You solved the Maze Puzzle!");
+      this.ui.displayPrompt(
+        "You find a map of the maze at the end of this sequence of symbols, picking it up to navigate the maze.",
+      );
+      player.addItem(createMazeMap());
+      return;
+    }
+
+    this.ui.displayPrompt("You failed the Maze Puzzle.");
+  }
+
+  /**
    * Remaining puzzle modules not ported yet — stubs still award progression items.
    */
   private async handlePuzzleStub(
@@ -634,25 +660,7 @@ export class GameController {
     }
 
     if (puzzleId === "maze") {
-      if (this.mazePuzzleSolved) {
-        this.ui.displayPrompt("This item seems dormant.");
-        return;
-      }
-      this.ui.displayPrompt(
-        "You should explore the maze, paying attention to your surrondings, do you want to explore? (YES or NO)",
-      );
-      const answer = (await this.ui.userInput()).trim().toUpperCase();
-      if (answer !== "YES") {
-        this.ui.displayPrompt("You walk away.");
-        return;
-      }
-      this.ui.displayPrompt("Puzzle not ported yet — granting MAZE MAP for exploration.");
-      this.ui.displayPrompt("You solved the Maze Puzzle!");
-      this.ui.displayPrompt(
-        "You find a map of the maze at the end of this sequence of symbols, picking it up to navigate the maze.",
-      );
-      this.mazePuzzleSolved = true;
-      player.addItem(createMazeMap());
+      await this.handleMazePuzzle(player);
       return;
     }
 
