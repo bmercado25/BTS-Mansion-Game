@@ -1,8 +1,7 @@
 import { Door, Item, Room } from "../domain";
 
 /**
- * Downstairs mansion content from latest C++ GameControllerClass.cpp (R2).
- * Greater Library WORD LOCK solver arrives in R3 — books + lock are present as interactables.
+ * Downstairs mansion content from latest C++ GameControllerClass.cpp.
  */
 export function buildDownstairsWorld(): Map<string, Room> {
   const rooms = new Map<string, Room>();
@@ -184,16 +183,16 @@ export function buildDownstairsWorld(): Map<string, Room> {
     },
   );
 
-  // Full GreaterLibraryPuzzle wiring is R3 — lock is visible/inspectable now.
+  // GreaterLibraryPuzzle — answer DODGE (clue books capitalize D-O-D-G-E).
   const wordLock = Item.interactable(
     "WORD LOCK",
     "A WORD LOCK which takes a 5 letter word.",
     false,
     {
-      kind: "message",
+      kind: "puzzle",
+      puzzleId: "greaterLibrary",
       inputMessage: "Would you like to INTERACT with the lock?",
-      outputMessage:
-        "The lock awaits a five-letter word. (Greater Library Puzzle — R3)",
+      outputMessage: "",
     },
   );
 
@@ -463,6 +462,17 @@ export function createDiningHallKey(): Item {
     "GREATER LIBRARY KEY",
     "A Shiny GREATER LIBRARY KEY with grapes on the handle,it appears to open the greater library",
     "DHKey",
+    true,
+    true,
+  );
+}
+
+/** Reward for Greater Library WORD LOCK (C++ studyKey). */
+export function createStudyKey(): Item {
+  return Item.key(
+    "STUDY KEY",
+    "An ornate key with lines of text scribbled on it.",
+    "STUDYKEY",
     true,
     true,
   );

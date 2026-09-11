@@ -19,7 +19,7 @@ export function buildMansionWorld(): Map<string, Room> {
   return rooms;
 }
 
-export { buildDownstairsWorld, createDiningHallKey } from "./downstairs";
+export { buildDownstairsWorld, createDiningHallKey, createStudyKey } from "./downstairs";
 export {
   buildUpstairsWorld,
   createGalleryHalfKey,

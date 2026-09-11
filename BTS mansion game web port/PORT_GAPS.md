@@ -33,7 +33,7 @@ Web port: this folder. Execute revisions in order **R2 → R10** (see below).
 
 | System | Latest C++ | Port today | Fix phase |
 |--------|------------|------------|-----------|
-| Study gate | WORD LOCK → `DODGE` → STUDY KEY → STUDY DOOR | `PUZZLE` exit + spoiler `YDDID` | **R3** |
+| Study gate | WORD LOCK → `DODGE` → STUDY KEY → STUDY DOOR | Ported (R3) | done |
 | Ritual win | C5 → `endingSequence` (name the demon/friend) | `winGame()` when candle count ≥ 5 | **R6–R7** |
 | C4 memory entry | Place C4 → teleport to MEMORY OF THE MANSION + sequence | Opens MEMORY exit from ritual; no forced teleport / sequence | **R6** |
 | C3–C5 placement | Full branches + letters; C3/C4/C5 may skip `addCandle` in C++ | Places C3–C5 + custom memory rift on C4 | **R6** |
@@ -83,7 +83,7 @@ Clue sources: ritual letters → **MALUM**; journals / newspaper → **HENRY**.
 ## Phase checklist (execute next)
 
 - [x] **R2** World: rooms, hides (`isSafe`), journals/notes  
-- [ ] **R3** Greater Library Puzzle; remove YDDID/PUZZLE  
+- [x] **R3** Greater Library Puzzle; remove YDDID/PUZZLE  
 - [ ] **R4** Monster timer + protected + hide reset  
 - [ ] **R5** Sanity −1/9s + jumble + SANITY command  
 - [ ] **R6** Ritual letters, C4 teleports, drop fake 5-candle win  

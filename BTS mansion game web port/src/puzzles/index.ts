@@ -9,3 +9,8 @@ export {
 } from "./galleryPuzzle";
 export { ChantPuzzle, CHANT_PHRASE } from "./chantPuzzle";
 export { MemoryPuzzle } from "./memoryPuzzle";
+export {
+  GreaterLibraryPuzzle,
+  GREATER_LIBRARY_ANSWER,
+  GREATER_LIBRARY_HINT,
+} from "./greaterLibraryPuzzle";

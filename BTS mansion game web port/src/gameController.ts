@@ -19,6 +19,7 @@ import {
   createMirrorHalfKey,
   createPlayerMemory,
   createSight,
+  createStudyKey,
 } from "./world";
 import {
   MirrorPuzzle,
@@ -27,6 +28,7 @@ import {
   GalleryPuzzle,
   ChantPuzzle,
   MemoryPuzzle,
+  GreaterLibraryPuzzle,
 } from "./puzzles";
 
 /**
@@ -45,6 +47,7 @@ export class GameController {
   private galleryPuzzle = new GalleryPuzzle();
   private chantPuzzle = new ChantPuzzle();
   private memoryPuzzle = new MemoryPuzzle();
+  private greaterLibraryPuzzle = new GreaterLibraryPuzzle();
   private memoryGobletIsActive = false;
   /** Browser stand-in for C++ sanitySequence thread. */
   private sanityTimerId: ReturnType<typeof setInterval> | null = null;
@@ -65,6 +68,7 @@ export class GameController {
     this.galleryPuzzle = new GalleryPuzzle();
     this.chantPuzzle = new ChantPuzzle();
     this.memoryPuzzle = new MemoryPuzzle();
+    this.greaterLibraryPuzzle = new GreaterLibraryPuzzle();
     this.memoryGobletIsActive = false;
     this.outcomeSettled = false;
 
@@ -740,6 +744,10 @@ export class GameController {
         await this.handleMemoryPuzzle(player);
         return;
       }
+      if (interaction.puzzleId === "greaterLibrary") {
+        await this.handleGreaterLibraryPuzzle(player);
+        return;
+      }
       await this.handlePuzzleStub(player, interaction.puzzleId);
       return;
     }
@@ -879,6 +887,22 @@ export class GameController {
   }
 
   /**
+   * Port of InteractClass greater-library branch + GreaterLibraryPuzzle::runPuzzle().
+   * Runs directly (no YES gate). Awards STUDY KEY for STUDY DOOR.
+   */
+  private async handleGreaterLibraryPuzzle(player: Player): Promise<void> {
+    if (this.greaterLibraryPuzzle.isSolved()) {
+      this.ui.displayPrompt("This has already been unlocked.");
+      return;
+    }
+
+    const solved = await this.greaterLibraryPuzzle.runPuzzle(this.ui);
+    if (solved) {
+      player.addItem(createStudyKey());
+    }
+  }
+
+  /**
    * Port of C++ GameController MEMORY GOBLET inspect branch.
    */
   private async handleMemoryGoblet(player: Player): Promise<void> {
@@ -919,6 +943,7 @@ export class GameController {
       | "maze"
       | "chant"
       | "memory"
+      | "greaterLibrary"
       | undefined,
   ): Promise<void> {
     if (puzzleId === "gallery") {
@@ -948,6 +973,11 @@ export class GameController {
 
     if (puzzleId === "memory") {
       await this.handleMemoryPuzzle(player);
+      return;
+    }
+
+    if (puzzleId === "greaterLibrary") {
+      await this.handleGreaterLibraryPuzzle(player);
       return;
     }
 
