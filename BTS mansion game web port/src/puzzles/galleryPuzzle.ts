@@ -20,7 +20,7 @@ export const GALLERY_ANSWERS = [
 ] as const;
 
 export const GALLERY_HINT =
-  "If you are stuck, there is perhaps something left behind by a long dead storyteller could help you here....";
+  "If you are stuck, there is perhaps something left behind by a long dead storyteller that could help you here....";
 
 /**
  * Browser port of C++ GalleryPuzzle.
@@ -85,13 +85,13 @@ export class GalleryPuzzle extends Puzzle {
     if (correctAnswerCount === requiredAnswers) {
       ui.clear();
       ui.displayPrompt(
-        "The blood stops bubbling and calms, revealing half of a bloody dais. You recieved the gallery half key!",
+        "The blood stops bubbling and calms, revealing half of a bloody dais. You received the gallery half key!",
       );
       this.isSolvedFlag = true;
     } else {
       ui.clear();
       ui.displayPrompt(
-        "The blood continues bubbling, dissapointed in your order of selections; maybe you need to go back and look for more clues.",
+        "The blood continues bubbling, disappointed in your order of selections; maybe you need to go back and look for more clues.",
       );
       this.isSolvedFlag = false;
     }

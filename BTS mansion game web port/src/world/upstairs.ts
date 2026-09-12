@@ -42,7 +42,7 @@ export function buildUpstairsWorld(): Map<string, Room> {
 
   const scribbledNote = Item.note(
     "SCRIBBLED NOTE",
-    "A SCRIBBLED NOTE that looks like a child's drawing of two kids side by side, both looking almost exactly similair, but one of the children seems to have jagged teeth instead of normal teeth.",
+    "A SCRIBBLED NOTE that looks like a child's drawing of two kids side by side, both looking almost exactly similar, but one of the children seems to have jagged teeth instead of normal teeth.",
     true,
   );
 
@@ -204,7 +204,7 @@ export function buildUpstairsWorld(): Map<string, Room> {
     "UPSTAIRS",
     new Room({
       description:
-        "You are now upstairs. The area is dimly lit and there are several doors leading to other parts of the mansion. There is a set of double doors at the end of the hallway with a complex lock. The lock has two halves of a dais empty that form an opening mechanism similair to a safe. There is also a three word combination lock on the wall between MIRROR ROOM 1 and MIRROR ROOM 2.",
+        "You are now upstairs. The area is dimly lit and there are several doors leading to other parts of the mansion. There is a set of double doors at the end of the hallway with a complex lock. The lock has two halves of a dais empty that form an opening mechanism similar to a safe. There is also a three word combination lock on the wall between MIRROR ROOM 1 and MIRROR ROOM 2.",
       name: "UPSTAIRS",
       exits: [
         "PORTAL",

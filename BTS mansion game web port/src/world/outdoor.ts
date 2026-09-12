@@ -61,7 +61,7 @@ export function buildOutdoorWorld(): Map<string, Room> {
 
   const journal5 = Item.note(
     "JOURNAL 5",
-    "A crumpled page which reads JOURNAL 5: Layla is dead. Henry killed her and my poor son Joseph. I found her journal and felt I shouldnt leave it without an ending. What did I do to deserve this? Henry's son, Lester sent me a letter that he would come visit in light of recent events from the past month. I hope to learn what happened to Henry and get some closure.",
+    "A crumpled page which reads JOURNAL 5: Layla is dead. Henry killed her and my poor son Joseph. I found her journal and felt I shouldn't leave it without an ending. What did I do to deserve this? Henry's son, Lester sent me a letter that he would come visit in light of recent events from the past month. I hope to learn what happened to Henry and get some closure.",
     true,
   );
 
@@ -91,7 +91,7 @@ export function buildOutdoorWorld(): Map<string, Room> {
       kind: "puzzle",
       puzzleId: "maze",
       inputMessage:
-        "You should explore the maze, paying attention to your surrondings, do you want to explore? (YES or NO)",
+        "You should explore the maze, paying attention to your surroundings, do you want to explore? (YES or NO)",
       outputMessage: "Test",
     },
   );

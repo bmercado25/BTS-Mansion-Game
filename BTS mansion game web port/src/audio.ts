@@ -62,6 +62,8 @@ export class GameAudio {
   private masterGain: GainNode | null = null;
   /** What ambient should be playing when unmuted. */
   private desiredAmbient: AmbientKind | "none" = "hum";
+  /** When true, ambient stays off (monster approaching silence). */
+  private threatSilence = false;
   private ambientKind: AmbientKind | null = null;
   private ambientGain: GainNode | null = null;
   private ambientSources: AudioScheduledSourceNode[] = [];
@@ -151,6 +153,7 @@ export class GameAudio {
 
   /** Menu: CRT / PSU computer hum. */
   enterMenu(): void {
+    this.threatSilence = false;
     this.desiredAmbient = "hum";
     this.syncAmbient();
   }
@@ -159,14 +162,30 @@ export class GameAudio {
    * Game start: kill the menu hum, weird error beep, then low horror drone.
    */
   async enterGameplay(): Promise<void> {
+    this.threatSilence = false;
     this.desiredAmbient = "drone";
     this.stopAmbientLoop(0.15);
     await this.playErrorBeep();
     this.syncAmbient();
   }
 
+  /** Cut ambient while the monster is close — sudden dead air. */
+  setThreatSilence(on: boolean): void {
+    this.threatSilence = on;
+    if (on) {
+      this.stopAmbientLoop(0.2);
+      return;
+    }
+    this.syncAmbient();
+  }
+
   private syncAmbient(): void {
-    if (!this.unlocked || this.muted || this.desiredAmbient === "none") {
+    if (
+      !this.unlocked ||
+      this.muted ||
+      this.desiredAmbient === "none" ||
+      this.threatSilence
+    ) {
       this.stopAmbientLoop();
       return;
     }

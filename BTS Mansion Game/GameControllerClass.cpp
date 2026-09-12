@@ -36,7 +36,7 @@ GameControllerClass::GameControllerClass() {
         "\nIt was a long drive about 40 miles removed from civilization."
         "\nThe fresh air hits your nose and you feel in tune with nature as your friend steps up next to you."
         "\nHe tells you how excited they are to be here and you recall how you've been friends for so long."
-        "\nTaking the time do spontaneous trips like this is one of the reasons why."
+        "\nTaking the time to do spontaneous trips like this is one of the reasons why."
         "\nAfter you set up for the night, your friend says he's going to take a leak."
         "\nYou sit by the fire, thinking of all the fun activities planned for this trip..."
         "\nSuddenly an arm coils around your neck and forces a damp rag onto your face."
@@ -50,15 +50,15 @@ GameControllerClass::GameControllerClass() {
 
     // Initialize endings
     //Good ending
-    goodEnding = "You instantly fall unconcious, and begin to see the origin story of this mansion..."
+    goodEnding = "You instantly fall unconscious, and begin to see the origin story of this mansion..."
         "\nHenry and Crane were best friends since childhood, both living quiet lives as neighbors in the 1800s."
         "\nOne day Crane reconnected with  his distant family from England, who were very wealthy."
         "\nCrane and his wife were showered with gifts from these relatives."
         "\nCrane was also offered a position to work for these relatives, receiving a significant pay bump."
-        "\nWith two children and all of these new riches, Cranes life was changing for the better. Or so he thought."
+        "\nWith two children and all of these new riches, Crane's life was changing for the better. Or so he thought."
         "\nDuring this time, Henry and Crane began drifting apart, sparking jealousy and anger from Henry."
         "\nHenry would lose his job, his wife, and custody of the kids, becoming a resentful and angry man."
-        "\nTurning to the bottle, Henry stewed. Why did Crane receive all the riches? Wait what is that? A newspapr headlined |Crane Mansion Finished|."
+        "\nTurning to the bottle, Henry stewed. Why did Crane receive all the riches? Wait what is that? A newspaper headlined |Crane Mansion Finished|."
         "\nThis was the final straw, Henry went home, grabbed his rifle and rusty knife, then drunkenly stumbled towards this new mansion."
         "\nHenry kicked the doors open to the Foyer, shooting the startled butler in the gut twice. Then he turned toward the lounge."
         "\nCrane's wife yells in panic, begging Henry to explain himself. 'Too loud,' Henry thinks and shoots the woman in the head."
@@ -68,30 +68,30 @@ GameControllerClass::GameControllerClass() {
         "\nAs the two began grappling, Henry felt a hint of remorse, but it was quickly consumed by cold emptiness."
         "\nHenry said, |Even if you kill me Crane, I swear that my bloodline will hunt yours for the rest of eternity!|"
         "\nCrane uses this distraction to push Henry to the wall, getting slashed across the chest with Henry's rusty knife in the process."
-        "\nCrane gets his pistol underneath Henrys chin, pulling the trigger. Guts and black blood fly everywhere, coating Crane and the wall."
-        "\nSlumping down next to the corpse of his once friend, Crane can not help but think of Henrys last dying words."
+        "\nCrane gets his pistol underneath Henry's chin, pulling the trigger. Guts and black blood fly everywhere, coating Crane and the wall."
+        "\nSlumping down next to the corpse of his once friend, Crane can not help but think of Henry's last dying words."
         "\nYou wake up and you see the mansion slowly melting away turning into black sludge, along with Crane and his family in spectral forms."
-        "\nCrane nods to you in thanks, as your friend is laying next to you, injured but alive, and looks to you."
+        "\nCrane nods to you in thanks, as your friend is lying next to you, injured but alive, and looks to you."
         "\n'What just happened?' he asks."
         "\n'It's a long story, you tried to kill me and then I exorcised some evil multi generational curse,' you say."
-        "\n'That's pretty cool, I guess. After this, you down for fast food on the way back?"
+        "\n'That's pretty cool, I guess. After this, are you down for fast food on the way back?'"
         "\n'Yeah sure let's go!'"
         "\nYou and your friend venture back to the car and can now breathe easily, knowing that the curse is broken or at least you hope so.";
 
     //Neutral ending
-    neutralEnding = "The room sudders, all of the candles light up at once and bright light filling the room with you."
+    neutralEnding = "The room shudders, all of the candles light up at once and a bright light fills the room with you."
         "\nThe monster bursts into the ritual room and lunges for you."
-        "\nThe light from each candle shoot out one by one, wrapping around and restraining it like chains."
+        "\nThe light from each candle shoots out one by one, wrapping around and restraining it like chains."
         "\nThe monster lets out a high pitched screech and its jet black flesh begins to sizzle and melt."
-        "\nMelting away, the monster is revealed to be your friend. He islifeless and pale, lying on the floor with eyes staring at you in shame."
-        "\nThe light blinds you and you suddenly find yourself outside of the manion, back in the woods."
+        "\nMelting away, the monster is revealed to be your friend. He is lifeless and pale, lying on the floor with eyes staring at you in shame."
+        "\nThe light blinds you and you suddenly find yourself outside of the mansion, back in the woods."
         "\nBefore any more horrific events can pull you back in, you run as fast as you can."
         "\nYou do not know if it is toward civilization, but you know that it is far away from this Big Terrible Shitty Mansion.";
 
     //Bad ending
     badEnding = "The room goes silent. You stand there waiting for something,"
         "\nno candles appear, no keys are given to you. All you hear is the monster approaching."
-        "\nNowhere to hide, your heart races, staking your life that whatever this ritual was did worked."
+        "\nNowhere to hide, your heart races, staking your life that whatever this ritual was did work."
         "\nThe monster enters and seems to realize the ritual you performed, or at least, tried to perform."
         "\nIt looks at you and raises its elongated hand and fingers up, slowly beginning to count down."
         "\n5, a candle goes out."
@@ -223,7 +223,7 @@ void GameControllerClass::gameLoop() {
 
     //Declare all doors TODO: Joey add logic for door map 
 
-    doors["DOOR"] = Door(true, "BBBB", "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move.A dim eeries light illuminates the room, as you stand here in feeling the chill of the cold and heavy air surronding you.There also appears to be a ornate wooden DOOR that is locked", "DOOR"); // create FOYER door
+    doors["DOOR"] = Door(true, "BBBB", "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eerie light illuminates the room, as you stand here feeling the chill of the cold and heavy air surrounding you. There also appears to be an ornate wooden DOOR that is locked", "DOOR"); // create FOYER door
     doors["BOOKSHELF"] = Door(true, "BookKey", "You enter the library, filled to the brim with bookshelves.", "BOOKSHELF");
     doors["DOUBLE DOORS"] = Door(true, "idMaster", "You are now in the Master Bedroom. The room is elegantly decorated with fine linens and rich colors.", "DOUBLE DOORS"); //Adding master bedroom door
     doors["BLOCKED HEDGE MAZE"] = Door(true, "MAZEKEY", "You pour the holy water on the dark force blocking the entrance to the hedge maze, granting yourself access as the dark sludge burns away.","BLOCKED HEDGE MAZE");
@@ -310,7 +310,7 @@ void GameControllerClass::gameLoop() {
     ItemClass journal2("JOURNAL 2", "A torn page which reads JOURNAL 2: Apparently my beloved husband Crane is related to some wealthy English family and they are coming to America! They already sent some gifts that are extravagant and they are offering Crane a very wealthy position in their family. This is amazing!", true, true);
     ItemClass journal3("JOURNAL 3", "A scroll which reads JOURNAL 3: Crane has been so busy with his new work and wealth. I do wish I could spend more time with him like we used to, but he says 'Soon he will not have to work.' I sure hope he’s right, I miss him. I wonder how Henry's doing?", true, true);
     ItemClass journal4("JOURNAL 4", "A liquid stained page which reads JOURNAL 4: Heard about Henry, apparently he lost his job and family. They left him after he got fired from his job over some drunken incident. I hope he is doing okay and if Crane has time, he should go visit him like the old days.", true, true);
-    ItemClass journal5("JOURNAL 5", "A crumpled page which reads JOURNAL 5: Layla is dead. Henry killed her and my poor son Joseph. I found her journal and felt I shouldnt leave it without an ending. What did I do to deserve this? Henry's son, Lester sent me a letter that he would come visit in light of recent events from the past month. I hope to learn what happened to Henry and get some closure.", true, true);
+    ItemClass journal5("JOURNAL 5", "A crumpled page which reads JOURNAL 5: Layla is dead. Henry killed her and my poor son Joseph. I found her journal and felt I shouldn't leave it without an ending. What did I do to deserve this? Henry's son, Lester sent me a letter that he would come visit in light of recent events from the past month. I hope to learn what happened to Henry and get some closure.", true, true);
     ItemClass newspaperClipping("NEWSPAPER CLIPPING", "A NEWSPAPER CLIPPING with headline Mansion Murder! Crane Smith murdered in his new Mansion two months after his family were murdered. Rumors are the son of first murderer, HENRY JENKINS, whose named LESTER JENKINS, was the killer. However, nothing has been confirmed as of late.", true, true);
 
     //Greater Library Items
@@ -333,7 +333,7 @@ void GameControllerClass::gameLoop() {
     ItemClass mobPainting = ItemClass("MOB PORTRAIT", "MOB PORTRAIT of a group of people with pitchforks and torches approaching a building.", false, mobPaintingInteraction);
 
     //Upstairs items
-    ItemClass noteUpA = ItemClass("SCRIBBLED NOTE", "A SCRIBBLED NOTE that looks like a child's drawing of two kids side by side, both looking almost exactly similair, but one of the children seems to have jagged teeth instead of normal teeth.", true, std::string("PaperPickup.wav")); //Note for clue to mirror puzzle
+    ItemClass noteUpA = ItemClass("SCRIBBLED NOTE", "A SCRIBBLED NOTE that looks like a child's drawing of two kids side by side, both looking almost exactly similar, but one of the children seems to have jagged teeth instead of normal teeth.", true, std::string("PaperPickup.wav")); //Note for clue to mirror puzzle
     ItemClass storyBook = ItemClass("STORYBOOK", "A giant STORYBOOK made of tough leather and weathered pages indicating many stories have been told from this book. It is opened to a page with a poem on it.", false, storyBookInteraction);
     ItemClass masterKey = ItemClass("MASTER KEY", "Fully completed MASTER KEY to the master bedroom.", "idMaster", true, true); //Adding master bedroom key
     ItemClass bedroomBottle = ItemClass("BOTTLE OF PILLS", "A BOTTLE OF PILLS with a faded label.", 50, true, true);
@@ -374,7 +374,7 @@ void GameControllerClass::gameLoop() {
     //define puzzle solution/s
     std::vector <std::string> mirrorSolution = { "MOONLIGHT", "FOREST GREEN", "BLACK" };
     //defining Gallery puzzle
-    GalleryPuzzle galleryPuzzle = GalleryPuzzle(portraits, { lordPainting, lordSonPainting, servantPainting }, "If you are stuck, there is perhaps something left behind by a long dead storyteller could help you here....");
+    GalleryPuzzle galleryPuzzle = GalleryPuzzle(portraits, { lordPainting, lordSonPainting, servantPainting }, "If you are stuck, there is perhaps something left behind by a long dead storyteller that could help you here....");
     //defining mirror puzzle
     MirrorPuzzle mirrorPuzzle = MirrorPuzzle(mirrorSolution, "You notice that the combination lock has a small mirror engraved at the bottom....");
     //defining fountain puzzle
@@ -389,7 +389,7 @@ void GameControllerClass::gameLoop() {
     InteractClass* mirrorPuzzleStarterInteraction = new InteractClass("Do you want to solve the three word combination? (YES or NO)", "Test", mirrorPuzzle);
     InteractClass* altarInteraction = new InteractClass("Do you want to initiate puzzle? (YES or NO)", "Test", galleryPuzzle);
     InteractClass* fountainPuzzleStarterInteraction = new InteractClass("Do you want to begin the Fountain Puzzle? (YES or NO)", "Test", fountainPuzzle);
-    InteractClass* mazePuzzleStarterInteraction = new InteractClass("You should explore the maze, paying attention to your surrondings, do you want to explore? (YES or NO)", "Test", mazePuzzle);
+    InteractClass* mazePuzzleStarterInteraction = new InteractClass("You should explore the maze, paying attention to your surroundings, do you want to explore? (YES or NO)", "Test", mazePuzzle);
     ItemClass mirrorPuzzleStarter = ItemClass("COMBINATION LOCK", "A three word COMBINATION LOCK...", false, mirrorPuzzleStarterInteraction);
     ItemClass galleryPuzzleStarter = ItemClass("ALTAR", "An ALTAR stands before you with a knife...", false, altarInteraction);
     ItemClass fountainPuzzleStarter = ItemClass("FOUNTAIN PANEL", "A FOUNTAIN PANEL is at the base of the fountain, it seems like you could push it as if it were a button...", false, fountainPuzzleStarterInteraction);
@@ -404,7 +404,7 @@ void GameControllerClass::gameLoop() {
 
 
     //Defining downstairs rooms
-    rooms["FOYER"] = RoomClass("You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eeries light illuminates the room as you stand there feeling the chill of the cold and heavy air surronding you. On the floor there is a bloody butler's suit. There also appears to be a ornate wooden DOOR that is locked.\n", "FOYER", std::list<std::string>{"LOUNGE", "DOOR","KITCHEN DOOR", "GUESTROOM"}, FoyerDoors, roomA_Items);
+    rooms["FOYER"] = RoomClass("You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eerie light illuminates the room as you stand there feeling the chill of the cold and heavy air surrounding you. On the floor there is a bloody butler's suit. There also appears to be an ornate wooden DOOR that is locked.\n", "FOYER", std::list<std::string>{"LOUNGE", "DOOR","KITCHEN DOOR", "GUESTROOM"}, FoyerDoors, roomA_Items);
     rooms["LIBRARY TABLE"] = RoomClass("You are under the table. You are safe from any threats.", "LIBRARY TABLE", std::list<std::string>{"LIBRARY"}, false, true);
     
     rooms["LIBRARY"] = RoomClass("You enter the library, filled to the brim with bookshelves.\n", "LIBRARY", std::list<std::string>{"FOYER", "BOOKSHELF", "GREATER LIBRARY DOOR", "LIBRARY TABLE"}, Library_Doors, library_Items);
@@ -433,7 +433,7 @@ void GameControllerClass::gameLoop() {
         "PORTAL", std::list<std::string>{}, FoyerDoors, std::vector<ItemClass>{});
    
     //Defining upstairs rooms
-    rooms["UPSTAIRS"] = RoomClass("You are now upstairs. The area is dimly lit and there are several doors leading to other parts of the mansion. There is a set of double doors at the end of the hallway with a complex lock. The lock has two halves of a dais empty that form an opening mechanism similair to a safe. There is also a three word combination lock on the wall between MIRROR ROOM 1 and MIRROR ROOM 2.",
+    rooms["UPSTAIRS"] = RoomClass("You are now upstairs. The area is dimly lit and there are several doors leading to other parts of the mansion. There is a set of double doors at the end of the hallway with a complex lock. The lock has two halves of a dais empty that form an opening mechanism similar to a safe. There is also a three word combination lock on the wall between MIRROR ROOM 1 and MIRROR ROOM 2.",
         "UPSTAIRS", std::list<std::string>{"PORTAL", "MIRROR ROOM 1", "MIRROR ROOM 2", "STORYTELLER'S ROOM", "GALLERY", "DOUBLE DOORS"}, Master_Doors, upstairsItems);  // Add PORTAL as an option
     //Defining upstairs rooms
     rooms["MIRROR ROOM 1"] = RoomClass("You enter a grand parlor bathed in soft, golden sunlight streaming through tall, arched windows. The room is elegantly furnished with a velvet chaise lounge positioned in the center and its deep burgundy fabric complementing the warm tones of the oak-paneled walls. A large, ornate mirror hangs above a marble fireplace on the north wall. On a small table beside the chaise, a crystal vase holds a single white rose, perfectly fresh. The air smells faintly of lavender, adding a serene ambiance to the room. A plush rug embroidered with intricate floral patterns cover the floor, leading to a door on the opposite side of the room.", "MIRROR ROOM 1", std::list<string>{"UPSTAIRS"} );
@@ -523,20 +523,20 @@ void GameControllerClass::gameLoop() {
 
     MemoryPuzzle memoryPuzzle = MemoryPuzzle("Memory Puzzle"); //instance for the memory puzzle
     InteractClass* memoryPuzzleStarterInteraction = new InteractClass("A memory tank", "Test", memoryPuzzle);//interaction that runs the memory puzzle
-    ItemClass memoryPuzzleStarter = ItemClass("MEMORY TANK", "A crystal tank that is labeled as MEMORY TANK. There is a hand inprint on the tank.", false, memoryPuzzleStarterInteraction); //item in THE LIFT to start puzzle
+    ItemClass memoryPuzzleStarter = ItemClass("MEMORY TANK", "A crystal tank that is labeled as MEMORY TANK. There is a hand imprint on the tank.", false, memoryPuzzleStarterInteraction); //item in THE LIFT to start puzzle
     ItemClass playerMemory = ItemClass("YOUR MEMORY", "A glowing orb, reminiscent of your past.", "YOURMEMORY", true, true); //Reward for completing memory puzzle
     bool memoryGobletIsActive = false; //boolean to determine whether memory goblet is active or not 
 
 
     ChantPuzzle chantPuzzle = ChantPuzzle("Chant Puzzle"); //instance for chant puzzle 
     InteractClass* chantPuzzleStarterInteraction = new InteractClass("A chanting altar", "Test", chantPuzzle); //interaction to run puzzle
-    ItemClass chantPuzzleStarter = ItemClass("CHANTING ALTAR", "A CHANTING ALTAR, there appears to be a 4 word phrase ingraved on the altar, but its been scrached away",false, chantPuzzleStarterInteraction); //item you can interact with
+    ItemClass chantPuzzleStarter = ItemClass("CHANTING ALTAR", "A CHANTING ALTAR, there appears to be a 4 word phrase engraved on the altar, but it's been scratched away",false, chantPuzzleStarterInteraction); //item you can interact with
     ItemClass Candle5 = ItemClass("CANDLE", "The 5th and Final Candle.", "C5", true, true); //declaration for candle
 
 
 
 
-    InteractClass* gobletInteraction = new InteractClass("Approch the goblet", "You interact with the goblet");//item in THE CONSCIOUS that allows user to put the item playerMemory
+    InteractClass* gobletInteraction = new InteractClass("Approach the goblet", "You interact with the goblet");//item in THE CONSCIOUS that allows user to put the item playerMemory
     ItemClass memoryGoblet = ItemClass("MEMORY GOBLET", "A transparent chalice with the logo of an eye called the MEMORY GOBLET, a place where memories can be added.", false, gobletInteraction); //interaction for memory goblet
 
     ItemClass Sight = ItemClass("SIGHT", "Allows you to see the unseen.", true, true); //item awarded from putting playermemory into the goblet 
@@ -576,53 +576,53 @@ void GameControllerClass::gameLoop() {
     rooms["MEMORY TABLE"] = RoomClass("You are now under the table. You are safe from any threats.", "MEMORY TABLE", std::list<std::string>{"MEMORY OF THE MANSION"}, false, true);
 
     //room for declaration of memory of the foyer
-    rooms["MEMORY OF THE FOYER"] = RoomClass("You arrive to a broken foyer and you an see a floating statue and doors that are floating away from their hinges. Appartions of a family of f!?o^ur@ with their eyes blacked out watch you. You see the text UROTMU which appears to be scrambled.",
+    rooms["MEMORY OF THE FOYER"] = RoomClass("You arrive at a broken foyer and you can see a floating statue and doors that are floating away from their hinges. Apparitions of a family of f!?o^ur@ with their eyes blacked out watch you. You see the text UROTMU which appears to be scrambled.",
         "MEMORY OF THE FOYER",
         std::list<std::string>{"MEMORY OF THE MANSION"},//adjacent rooms
         memoryOfTheFoyerDoors,
         memoryOfTheFoyerItems,
         true, //boolean to determine if the room has a conditonal description
-        "You arrive to a broken foyer and you an see a floating statue and doors that are floating away from their hinges. Appartions of a family of f!?o^ur@ with their eyes blacked out watch you. Adjecent to this room is MEMORY OF THE MANSION. The letters re-arrange to form: TUORUM."
+        "You arrive at a broken foyer and you can see a floating statue and doors that are floating away from their hinges. Apparitions of a family of f!?o^ur@ with their eyes blacked out watch you. Adjacent to this room is MEMORY OF THE MANSION. The letters re-arrange to form: TUORUM."
         );//Conditional description to be displayed ^^
     //room for declaration of memory of the library
-    rooms["MEMORY OF THE LIBRARY"] = RoomClass("You arrive to a broken library, books and bookshelfs are floating around. There is a woman lying on the floor with t$hr#@ee darts in her head. You see the text OACPMEURTC which appears to be scrambled.",
+    rooms["MEMORY OF THE LIBRARY"] = RoomClass("You arrive at a broken library, books and bookshelves are floating around. There is a woman lying on the floor with t$hr#@ee darts in her head. You see the text OACPMEURTC which appears to be scrambled.",
         "MEMORY OF THE LIBRARY",
         std::list<std::string>{"MEMORY OF THE MANSION"}, //adjacent rooms
         memoryOfTheLibraryDoors,
         memoryOfTheLibraryItems,
         true,//boolean to determine if the room has a conditonal description
-        "You arrive to a broken library, books and bookshelfs are floating around. There is a woman lying on the floor with t$hr#@ee darts in her head. The letters re-arrange to form: PECCATORUM."
+        "You arrive at a broken library, books and bookshelves are floating around. There is a woman lying on the floor with t$hr#@ee darts in her head. The letters re-arrange to form: PECCATORUM."
         //Conditional description to be displayed ^^
     );
     //room for declaration of memory of the garden
-    rooms["MEMORY OF THE GARDEN"] = RoomClass("You arrive to a broken garden, the grass is no longer green and the hedgmaze has been burnt away.  There is o!(ne& figure all in black digging a gravestone with your name on it. You see the text GNXUIEET which appears to be scrambled.",
+    rooms["MEMORY OF THE GARDEN"] = RoomClass("You arrive at a broken garden, the grass is no longer green and the hedge maze has been burnt away. There is o!(ne& figure all in black digging a gravestone with your name on it. You see the text GNXUIEET which appears to be scrambled.",
         "MEMORY OF THE GARDEN",
         std::list<std::string>{"MEMORY OF THE MANSION"},//adjacent rooms
         memoryOfTheGardenDoors,
         memoryOfTheGardenItems,
         true,//boolean to determine if the room has a conditonal description
-        "You arrive to a broken garden. There is o!(ne& figure all in black digging a gravestone with your name on it. Adjacent to this room is MEMORY OF THE MANSION. The letters re-arrange to form: EXTINGUE."
+        "You arrive at a broken garden. There is o!(ne& figure all in black digging a gravestone with your name on it. Adjacent to this room is MEMORY OF THE MANSION. The letters re-arrange to form: EXTINGUE."
         //Conditional description to be displayed ^^
     );
     //room for declaration of memory of the study
-    rooms["MEMORY OF THE STUDY"] = RoomClass("You arrive to a broken study. On the desk sits a revolver with blood all around, as %t^w*o men lie lifeless on the desk with holes in their heads. You see the letters LMMMFAA.",
+    rooms["MEMORY OF THE STUDY"] = RoomClass("You arrive at a broken study. On the desk sits a revolver with blood all around, as %t^w*o men lie lifeless on the desk with holes in their heads. You see the letters LMMMFAA.",
         "MEMORY OF THE STUDY",
         std::list<std::string>{"MEMORY OF THE MANSION"},//adjacent rooms
         memoryOfTheStudyDoors,
         memoryOfTheStudyItems,
         true,//boolean to determine if the room has a conditonal description
-        "You arrive to a broken study. On the desk sits a revolver with blood all around, as %t^w*o men lie lifeless on the desk with holes in their heads. Adjacent to this room is MEMORY OF THE MANSION The letters re-arrange to form: FLAMMAM."
+        "You arrive at a broken study. On the desk sits a revolver with blood all around, as %t^w*o men lie lifeless on the desk with holes in their heads. Adjacent to this room is MEMORY OF THE MANSION. The letters re-arrange to form: FLAMMAM."
         //Conditional description to be displayed ^^
     );
     //room for declaration of memory of the lift
-    rooms["THE LIFT"] = RoomClass("The beam of energy carries your body up to place that is unrecognizable, it appears to be an attic.",
+    rooms["THE LIFT"] = RoomClass("The beam of energy carries your body up to a place that is unrecognizable, it appears to be an attic.",
         "THE LIFT",
         std::list<std::string>{"MEMORY OF THE MANSION"},//adjacent rooms
         memoryOfTheAtticDoors,
         memoryOfTheAtticItems
     );
     //room for declaration of memory of the conscious
-    rooms["THE CONSCIOUS"] = RoomClass("You enter a new room that looks nothing like the mansion. It has an evil influence, as if you were inside the concious of the monster itself.",
+    rooms["THE CONSCIOUS"] = RoomClass("You enter a new room that looks nothing like the mansion. It has an evil influence, as if you were inside the conscious of the monster itself.",
         "THE CONSCIOUS",
         std::list<std::string>{"MEMORY OF THE MANSION"}, //adjacent rooms
         theConsciousDoors,
@@ -1095,7 +1095,7 @@ void GameControllerClass::gameLoop() {
                             
                             PlaySound(TEXT("MonsterCandeRoar.wav"), NULL, SND_FILENAME | SND_ASYNC);
                             std::this_thread::sleep_for(std::chrono::seconds(9));
-                            UI.displayPrompt("You recieve the final candle, its waiting to be set down on the pentagrams edge");
+                            UI.displayPrompt("You receive the final candle, it's waiting to be set down on the pentagram's edge");
                             std::this_thread::sleep_for(std::chrono::seconds(4));
                             userPlayer.setRoom(rooms["RITUAL ROOM"]);
                         }

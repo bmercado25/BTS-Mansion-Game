@@ -10,7 +10,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     new Door(
       true,
       "BBBB",
-      "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move.A dim eeries light illuminates the room, as you stand here in feeling the chill of the cold and heavy air surronding you.There also appears to be a ornate wooden DOOR that is locked",
+      "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eerie light illuminates the room, as you stand here feeling the chill of the cold and heavy air surrounding you. There also appears to be an ornate wooden DOOR that is locked",
       "DOOR",
     );
 
@@ -272,7 +272,7 @@ export function buildDownstairsWorld(): Map<string, Room> {
     "FOYER",
     new Room({
       description:
-        "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eeries light illuminates the room as you stand there feeling the chill of the cold and heavy air surronding you. On the floor there is a bloody butler's suit. There also appears to be a ornate wooden DOOR that is locked.\n",
+        "You enter the foyer, the walls are lined with faded wallpaper and adorned with massive grim portraits of long forgotten residents whose eyes seem to follow your every move. A dim eerie light illuminates the room as you stand there feeling the chill of the cold and heavy air surrounding you. On the floor there is a bloody butler's suit. There also appears to be an ornate wooden DOOR that is locked.\n",
       name: "FOYER",
       exits: ["LOUNGE", "DOOR", "KITCHEN DOOR", "GUESTROOM"],
       doors: [makeLibraryDoor()],

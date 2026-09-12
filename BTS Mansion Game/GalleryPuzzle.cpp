@@ -71,11 +71,11 @@ void GalleryPuzzle::runPuzzle()
 	if (correctAnswerCount == answers.size()) //Puzzle solved
 	{
 		system("cls");
-		ui.displayPrompt("The blood stops bubbling and calms, revealing half of a bloody dais. You recieved the gallery half key!");
+		ui.displayPrompt("The blood stops bubbling and calms, revealing half of a bloody dais. You received the gallery half key!");
 		_isSolved = true;
 	}
 	else {
 		system("cls");
-		ui.displayPrompt("The blood continues bubbling, dissapointed in your order of selections; maybe you need to go back and look for more clues.\n");
+		ui.displayPrompt("The blood continues bubbling, disappointed in your order of selections; maybe you need to go back and look for more clues.\n");
 	}
 }

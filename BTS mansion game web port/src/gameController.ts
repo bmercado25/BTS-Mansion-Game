@@ -61,6 +61,8 @@ export class GameController {
   private monster: MonsterTimer | null = null;
   /** When set, game loop awaits grab before accepting the next command. */
   private grabPromise: Promise<void> | null = null;
+  /** Sparse haunt whispers while sanity is frayed. */
+  private hauntTimerId: ReturnType<typeof setTimeout> | null = null;
 
   constructor(ui: UserInterface) {
     this.ui = ui;
@@ -107,6 +109,7 @@ export class GameController {
 
     this.startSanitySequence();
     this.startMonsterTimer();
+    this.startHauntWhispers();
     await this.gameLoop();
   }
 
@@ -140,6 +143,8 @@ export class GameController {
     this.outcomeSettled = true;
     this.stopSanitySequence();
     this.stopMonsterTimer();
+    this.stopHauntWhispers();
+    gameAudio.setThreatSilence(false);
     this.running = false;
     this.ui.cancelAsk();
 
@@ -162,6 +167,8 @@ export class GameController {
     this.outcomeSettled = true;
     this.stopSanitySequence();
     this.stopMonsterTimer();
+    this.stopHauntWhispers();
+    gameAudio.setThreatSilence(false);
     this.running = false;
     this.ui.cancelAsk();
     this.ui.clear();
@@ -253,12 +260,14 @@ export class GameController {
   /** Port of MonsterClass (120s) via setInterval. */
   private startMonsterTimer(): void {
     this.stopMonsterTimer();
+    gameAudio.setThreatSilence(false);
     this.monster = new MonsterTimer(120, {
       isProtected: () => this.inProtectedState(),
       onApproaching: () => {
         if (!this.running) {
           return;
         }
+        gameAudio.setThreatSilence(true);
         gameAudio.playMonsterWarnBeep();
         this.ui.displayLine(
           "The monster is approching, you must hide, hurry!",
@@ -271,6 +280,7 @@ export class GameController {
         }
         // C++ skips grab while protected, then loop restarts the timer.
         if (this.inProtectedState()) {
+          gameAudio.setThreatSilence(false);
           this.monster?.start();
           return;
         }
@@ -283,6 +293,39 @@ export class GameController {
   private stopMonsterTimer(): void {
     this.monster?.stop();
     this.monster = null;
+  }
+
+  /** Infrequent CRT whispers while sanity &lt; 80. */
+  private startHauntWhispers(): void {
+    this.stopHauntWhispers();
+    this.scheduleHauntWhisper();
+  }
+
+  private stopHauntWhispers(): void {
+    if (this.hauntTimerId !== null) {
+      clearTimeout(this.hauntTimerId);
+      this.hauntTimerId = null;
+    }
+  }
+
+  private scheduleHauntWhisper(): void {
+    // Pretty infrequent: next attempt in ~50–110s.
+    const delayMs = 50_000 + Math.random() * 60_000;
+    this.hauntTimerId = setTimeout(() => {
+      this.hauntTimerId = null;
+      if (!this.running || !this.player) {
+        return;
+      }
+      if (this.player.getSanity() < 80) {
+        // Still rare within the window (~35% when due).
+        if (Math.random() < 0.35) {
+          this.ui.flashHaunt("DONT TOUCH THE CANDLE");
+        }
+      }
+      if (this.running) {
+        this.scheduleHauntWhisper();
+      }
+    }, delayMs);
   }
 
   /**
@@ -311,7 +354,7 @@ export class GameController {
     }
 
     this.ui.displayPrompt(
-      "Its been satisfied -- It disappears into nothingness, you have lost 30 sanity. and fall to the ground",
+      "It's been satisfied -- It disappears into nothingness, you have lost 30 sanity, and fall to the ground",
     );
     await this.ui.sleep(5000);
     if (!this.running || !this.player) {
@@ -340,6 +383,7 @@ export class GameController {
     this.ui.clear();
 
     // C++ game loop restarts the monster after a trigger.
+    gameAudio.setThreatSilence(false);
     this.monster?.start();
   }
 
@@ -363,6 +407,7 @@ export class GameController {
     const safe = player.getRoom().getIsSafe();
     this.isInProtectedAction = safe;
     if (safe) {
+      gameAudio.setThreatSilence(false);
       this.monster?.reset();
     }
   }
@@ -758,15 +803,17 @@ export class GameController {
       return;
     }
 
-    // Already handled in special movement, but keep as exit fallback
+    // Special exits (lounge↔dining, kitchen door, portal) — only bail if handled.
+    // DINING HALL from kitchen/table must fall through to normal room lookup.
     if (
       command === "KITCHEN DOOR" ||
       command === "DINING HALL DOOR" ||
       command === "DINING HALL" ||
       command === "PORTAL"
     ) {
-      await this.handleSpecialMovement(player, currentRoom, command);
-      return;
+      if (await this.handleSpecialMovement(player, currentRoom, command)) {
+        return;
+      }
     }
 
     const previousRoom = currentRoom.getName();
@@ -970,6 +1017,8 @@ export class GameController {
     // Stop threats before the name prompt / long text (any ending path).
     this.stopSanitySequence();
     this.stopMonsterTimer();
+    this.stopHauntWhispers();
+    gameAudio.setThreatSilence(false);
 
     this.ui.displayPrompt("I AM...");
     for (let i = 0; i < 2; i++) {
@@ -1109,7 +1158,7 @@ export class GameController {
     if (solved) {
       gameAudio.play("puzzleSuccess");
       this.ui.displayPrompt(
-        "You solved the Mirror Puzzle! You recieved a half of a key in your inventory.",
+        "You solved the Mirror Puzzle! You received a half of a key in your inventory.",
       );
       player.addItem(createMirrorHalfKey());
       this.tryCombineMasterKey(player);
@@ -1219,7 +1268,7 @@ export class GameController {
     gameAudio.play("monsterCandleRoar");
     await this.ui.sleep(9000);
     this.ui.displayPrompt(
-      "You recieve the final candle, its waiting to be set down on the pentagrams edge",
+      "You receive the final candle, it's waiting to be set down on the pentagram's edge",
     );
     await this.ui.sleep(4000);
 

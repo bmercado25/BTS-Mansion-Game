@@ -197,6 +197,11 @@ export class UserInterface {
     return this.terminal.scareFlash(ms);
   }
 
+  /** Random-position haunt whisper on the CRT. */
+  flashHaunt(text: string): void {
+    this.terminal.flashHaunt(text);
+  }
+
   /** Unblock a waiting ask() (sanity game-over / quit). */
   cancelAsk(): void {
     this.terminal.cancelAsk();
@@ -204,8 +209,22 @@ export class UserInterface {
 
   /** Split, jumble non-ALL-CAPS words when sanity is low, rejoin. */
   private formatSanityPrompt(prompt: string, sanity: number): string {
+    if (sanity >= 80) {
+      return prompt;
+    }
+    const aggression = this.jumbleAggression(sanity);
     const words = prompt.split(/\s+/).filter((w) => w.length > 0);
-    const jumbled = words.map((word) => this.jumbleWord(word, sanity));
+    // Subtle early: only a few words twitch. Near 30: almost everything frays.
+    const wordChance = 0.06 + aggression * 0.92;
+    const jumbled = words.map((word) => {
+      if (this.isAllUppercase(word)) {
+        return word;
+      }
+      if (Math.random() > wordChance) {
+        return word;
+      }
+      return this.jumbleWord(word, aggression);
+    });
     return jumbled.join(" ");
   }
 
@@ -219,41 +238,59 @@ export class UserInterface {
   }
 
   /**
-   * Port of UserInterfaceClass::jumble_word.
-   * Jumble when sanity < 35 (C++ returns unchanged at intensity >= 35).
+   * 0 at sanity 80 (onset), 1 at sanity ≤ 30.
+   * Squared so early corruption stays subtle, then ramps hard toward 30.
    */
-  private jumbleWord(word: string, intensity: number): string {
-    if (this.isAllUppercase(word)) {
-      return word;
+  private jumbleAggression(sanity: number): number {
+    if (sanity >= 80) {
+      return 0;
     }
-    if (intensity >= 35) {
-      return word;
+    if (sanity <= 30) {
+      return 1;
     }
-    if (word.length <= 2) {
-      return word;
-    }
+    const t = (80 - sanity) / 50;
+    return t * t;
+  }
 
-    const jumbleFactor = 1.0 - intensity / 100.0;
-    if (jumbleFactor <= 0.1) {
+  /**
+   * Gradual sanity corruption: light adjacent swaps at high SAN,
+   * heavy middle scrambles as aggression → 1 (near 30).
+   */
+  private jumbleWord(word: string, aggression: number): string {
+    if (aggression <= 0 || word.length <= 2) {
       return word;
     }
 
     const chars = [...word];
-    if (jumbleFactor > 0.5) {
-      const numSwaps = Math.max(1, Math.floor(word.length * jumbleFactor));
-      for (let i = 0; i < numSwaps; i++) {
-        const idx1 = 1 + Math.floor(Math.random() * (word.length - 1));
-        const idx2 = 1 + Math.floor(Math.random() * (word.length - 1));
-        const a = chars[idx1];
-        const b = chars[idx2];
-        if (a !== undefined && b !== undefined) {
-          chars[idx1] = b;
-          chars[idx2] = a;
-        }
+
+    // Very subtle (SAN ~80–65): rare single adjacent swap in the middle.
+    if (aggression < 0.2) {
+      if (chars.length > 3 && Math.random() < 0.55) {
+        const i = 1 + Math.floor(Math.random() * (chars.length - 3));
+        const a = chars[i]!;
+        chars[i] = chars[i + 1]!;
+        chars[i + 1] = a;
       }
       return chars.join("");
     }
 
+    // Building (SAN ~65–45): a few middle swaps, keep first/last.
+    if (aggression < 0.55) {
+      const swaps = 1 + Math.floor(aggression * 3);
+      for (let n = 0; n < swaps; n++) {
+        if (chars.length <= 3) {
+          break;
+        }
+        const i = 1 + Math.floor(Math.random() * (chars.length - 2));
+        const j = 1 + Math.floor(Math.random() * (chars.length - 2));
+        const a = chars[i]!;
+        chars[i] = chars[j]!;
+        chars[j] = a;
+      }
+      return chars.join("");
+    }
+
+    // Harsh (SAN ~45–30): shuffle interior; near peak, thrash harder.
     if (chars.length > 2) {
       const mid = chars.slice(1, -1);
       for (let i = mid.length - 1; i > 0; i--) {
@@ -262,7 +299,20 @@ export class UserInterface {
         mid[i] = mid[j]!;
         mid[j] = tmp;
       }
-      return chars[0]! + mid.join("") + chars[chars.length - 1]!;
+      let result = chars[0]! + mid.join("") + chars[chars.length - 1]!;
+      if (aggression > 0.85 && result.length > 4) {
+        const extra = [...result];
+        const numSwaps = Math.max(2, Math.floor(result.length * aggression * 0.7));
+        for (let n = 0; n < numSwaps; n++) {
+          const i = Math.floor(Math.random() * extra.length);
+          const j = Math.floor(Math.random() * extra.length);
+          const a = extra[i]!;
+          extra[i] = extra[j]!;
+          extra[j] = a;
+        }
+        result = extra.join("");
+      }
+      return result;
     }
 
     return chars.join("");

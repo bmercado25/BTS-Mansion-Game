@@ -71,7 +71,7 @@ void MonsterClass::onTimerTriggered() //Runs when timer finishes
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000)); //pause while user reads
 	
-	ui.displayPrompt("Its been satisfied -- It disappears into nothingness, you have lost 30 sanity. and fall to the ground");
+	ui.displayPrompt("It's been satisfied -- It disappears into nothingness, you have lost 30 sanity, and fall to the ground");
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000)); //pause
 	currentPlayer->setSanity(currentPlayer->getSanity() - 30); //when user is grabbed, user loses 30 sanity
 	system("cls"); 

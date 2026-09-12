@@ -40,6 +40,8 @@ export type Terminal = {
   blackout: (ms?: number) => Promise<void>;
   /** Invert-pulse flash for jumpscare (skips motion if reduced-motion). */
   scareFlash: (ms?: number) => Promise<void>;
+  /** Brief haunt text at a random spot on the CRT. */
+  flashHaunt: (text: string) => void;
 };
 
 type PendingAsk = {
@@ -201,6 +203,22 @@ export function createTerminal(root: HTMLElement): Terminal {
     root.classList.remove("is-scare-flash");
   };
 
+  const flashHaunt = (text: string): void => {
+    const el = document.createElement("div");
+    el.className = "terminal-haunt";
+    el.textContent = text;
+    el.setAttribute("aria-hidden", "true");
+    const pad = 8;
+    const maxLeft = Math.max(pad, root.clientWidth - 220);
+    const maxTop = Math.max(pad, root.clientHeight - 40);
+    el.style.left = `${pad + Math.random() * (maxLeft - pad)}px`;
+    el.style.top = `${pad + Math.random() * (maxTop - pad)}px`;
+    root.appendChild(el);
+    window.setTimeout(() => {
+      el.remove();
+    }, 1600);
+  };
+
   const setPlaceholder = (text: string): void => {
     input.placeholder = text;
   };
@@ -304,5 +322,6 @@ export function createTerminal(root: HTMLElement): Terminal {
     clearBanner,
     blackout,
     scareFlash,
+    flashHaunt,
   };
 }

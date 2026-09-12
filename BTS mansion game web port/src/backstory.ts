@@ -7,7 +7,7 @@ export const BACKSTORY = [
   "It was a long drive about 40 miles removed from civilization.",
   "The fresh air hits your nose and you feel in tune with nature as your friend steps up next to you.",
   "He tells you how excited they are to be here and you recall how you've been friends for so long.",
-  "Taking the time do spontaneous trips like this is one of the reasons why.",
+  "Taking the time to do spontaneous trips like this is one of the reasons why.",
   "After you set up for the night, your friend says he's going to take a leak.",
   "You sit by the fire, thinking of all the fun activities planned for this trip...",
   "Suddenly an arm coils around your neck and forces a damp rag onto your face.",

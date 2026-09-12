@@ -1,8 +1,4 @@
 :root {
-  color-scheme: dark;
-  --desk: #8b0000;
-  --chassis-dark: #9e9178;
-  --crt-bg: #000000;
   --fg: #e8e8e8;
   --fg-dim: #888888;
   --term-green: #33ff66;
@@ -11,16 +7,11 @@
   --term-magenta: #ff66cc;
   --term-orange: #ff9944;
   --term-white: #ffffff;
-  --win-face: #c0c0c0;
-  --win-face-light: #dfdfdf;
-  --win-face-dark: #808080;
-  --win-navy: #000080;
-  --outer-ink: #000000;
-  --outer-muted: #333333;
-  --outer-link: #0000ee;
-  --outer-link-visited: #551a8b;
-  --font-screen: "VT323", "Courier New", Consolas, monospace;
-  --font-outer: "MS Sans Serif", Tahoma, Verdana, Arial, Helvetica, sans-serif;
+  --mac-cream: #e8e0d0;
+  /* CRT only */
+  --font-screen: "VT323", "Courier New", "Courier", monospace;
+  /* 90s beginner page fonts */
+  --font-page: "Times New Roman", Times, serif;
 }
 
 *,
@@ -29,20 +20,20 @@
   box-sizing: border-box;
 }
 
+/*
+ * Outer page: 90s “learned HTML yesterday” —
+ * crimson bg, yellow title, Times, simple boxes.
+ * CRT sits in a flat cream Mac bezel (no gradient / shadow).
+ */
 html,
 body {
   margin: 0;
   min-height: 100%;
-  /* Classic solid page color + faint tile (personal-site desk) */
-  background-color: var(--desk);
-  background-image:
-    linear-gradient(rgba(0, 0, 0, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.12) 1px, transparent 1px);
-  background-size: 16px 16px;
-  color: #fff8f8;
-  font-family: var(--font-outer);
-  font-size: 12px;
-  line-height: 1.35;
+  background-color: #8b0000;
+  color: #ffffff;
+  font-family: var(--font-page);
+  font-size: 16px;
+  line-height: normal;
 }
 
 #app {
@@ -50,134 +41,91 @@ body {
 }
 
 .desk {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  width: min(100%, 96rem);
+  max-width: 960px;
   margin: 0 auto;
-  padding: 12px 12px 28px;
+  padding: 10px;
+  text-align: center;
 }
 
-/* —— 90s / early-2000s outer chrome (not the CRT) —— */
 .machine-titlebar {
-  display: flex;
-  align-items: stretch;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 0;
-  background: var(--win-face);
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  color: var(--outer-ink);
+  margin: 0 0 0.65em;
 }
 
 .machine-badge {
-  min-width: 0;
-  flex: 1;
-  padding: 6px 10px 8px;
-  background: var(--win-navy);
-  border-right: 2px solid #000040;
+  margin: 0 0 0.25em;
 }
 
 .machine-brand {
-  margin: 0 0 2px;
-  font-family: var(--font-outer);
-  font-size: 10px;
+  margin: 0 0 0.15em;
+  font-family: var(--font-page);
+  font-size: 14px;
   font-weight: bold;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: #ffff00;
 }
 
 .machine-title {
-  margin: 0;
-  font-family: "Times New Roman", Times, serif;
+  margin: 0 0 0.25em;
+  font-family: var(--font-page);
+  font-size: 2em;
   font-weight: bold;
-  font-size: 26px;
-  line-height: 1.15;
-  letter-spacing: 0;
   color: #ffffff;
+  line-height: 1.15;
 }
 
 .audio-controls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  align-self: center;
-  margin-right: 8px;
-  padding: 4px 6px;
-  background: var(--win-face);
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  color: var(--outer-ink);
+  display: inline-block;
+  margin: 0;
+  padding: 3px 5px;
+  background-color: #c0c0c0;
+  border: 2px solid #000000;
+  color: #000000;
+  font-family: var(--font-page);
+  font-size: 14px;
+  text-align: left;
 }
 
 .audio-volume {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin: 0;
-  color: var(--outer-ink);
+  color: #000000;
 }
 
 .audio-volume-label {
-  font-family: var(--font-outer);
-  font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0;
+  font-family: var(--font-page);
+  font-size: 14px;
 }
 
 .audio-volume-slider {
-  appearance: auto;
-  width: 90px;
-  cursor: pointer;
+  width: 100px;
+  vertical-align: middle;
 }
 
 .audio-mute {
-  appearance: none;
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  border-radius: 0;
-  background: var(--win-face);
-  color: var(--outer-ink);
+  margin-left: 0.4em;
+  padding: 1px 6px;
+  border: 1px solid #000000;
+  background: #e0e0e0;
+  color: #000000;
+  font-family: var(--font-page);
+  font-size: 14px;
   cursor: pointer;
+  vertical-align: middle;
   line-height: 0;
 }
 
 .audio-mute:hover {
-  background: var(--win-face-light);
+  background: #ffffff;
 }
 
-.audio-mute:active,
 .audio-mute[aria-pressed="true"] {
-  border-top: 2px solid #808080;
-  border-left: 2px solid #808080;
-  border-right: 2px solid #ffffff;
-  border-bottom: 2px solid #ffffff;
-  background: #b8b8b8;
-  color: #800000;
+  background: #808080;
+  color: #ffffff;
 }
 
 .audio-icon {
   width: 14px;
   height: 14px;
-  display: block;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .audio-mute .audio-icon-muted {
@@ -189,9 +137,10 @@ body {
 }
 
 .audio-mute[aria-pressed="true"] .audio-icon-muted {
-  display: block;
+  display: inline-block;
 }
 
+/* Flat cream Macintosh CRT shell — no gradient, no drop shadow */
 .machine {
   width: 100%;
   height: min(90vh, 64rem);
@@ -201,30 +150,26 @@ body {
   max-height: 96vh;
   display: flex;
   flex-direction: column;
-  padding: 6px;
-  border-radius: 0;
-  background: var(--win-face);
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
+  margin: 0;
+  padding: 18px 18px 28px;
+  background: var(--mac-cream);
+  border: none;
+  border-radius: 8px;
   overflow: hidden;
   resize: both;
+  text-align: left;
 }
 
 .crt-bezel {
   flex: 1;
   min-height: 0;
-  padding: 6px;
-  border-radius: 0;
+  padding: 8px;
   background: #000000;
-  border-top: 2px solid #808080;
-  border-left: 2px solid #808080;
-  border-right: 2px solid #ffffff;
-  border-bottom: 2px solid #ffffff;
+  border: 2px solid #000000;
+  border-radius: 2px;
 }
 
-/* Computer screen — keep VT323 / terminal look; do not inherit outer fonts */
+/* Computer screen — keep VT323 / terminal look */
 .terminal {
   position: relative;
   display: flex;
@@ -232,11 +177,12 @@ body {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 2px;
   background: #000;
-  border: 1px solid #1a1a1a;
+  border: none;
   font-family: var(--font-screen);
   color: var(--fg);
+  text-align: left;
 }
 
 /* No scanline overlay — it glitched while scrolling. */
@@ -286,6 +232,53 @@ body {
   .terminal.is-scare-flash {
     animation: none;
     filter: invert(1) contrast(1.1);
+  }
+
+  .terminal-haunt {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+.terminal-haunt {
+  position: absolute;
+  z-index: 25;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ff2a2a;
+  font-family: var(--font-screen);
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+  white-space: nowrap;
+  text-shadow: 0 0 6px rgba(255, 40, 40, 0.55);
+  animation: terminal-haunt-flash 1.55s steps(1, end) both;
+}
+
+@keyframes terminal-haunt-flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  8%,
+  28%,
+  48% {
+    opacity: 1;
+  }
+  18%,
+  38%,
+  58% {
+    opacity: 0;
+  }
+  68%,
+  88% {
+    opacity: 0.7;
+  }
+  78% {
+    opacity: 0;
   }
 }
 
@@ -530,122 +523,77 @@ body {
   color: #555;
 }
 
-/* Outside the computer — classic nested “table” page block */
+/* About — simple white box, tiny spacing */
 .about {
-  width: 100%;
-  margin-top: 2px;
-  padding: 0;
-  border-radius: 0;
-  background: var(--win-face);
-  color: var(--outer-ink);
-  border-top: 2px solid #ffffff;
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #808080;
-  border-bottom: 2px solid #808080;
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size: 12px;
-  box-shadow: none;
+  margin-top: 0.65em;
+  padding: 8px;
+  background-color: #ffffff;
+  border: 2px solid #000000;
+  font-family: var(--font-page);
+  font-size: 14px;
+  color: #000000;
+  text-align: left;
 }
 
 .about-title {
-  margin: 0;
-  padding: 5px 10px;
-  font-family: "Times New Roman", Times, serif;
-  font-size: 18px;
+  margin: 0 0 0.35em;
+  font-family: var(--font-page);
+  font-size: 1.4em;
   font-weight: bold;
-  letter-spacing: 0;
-  text-transform: none;
-  color: #ffffff;
-  background: var(--win-navy);
-  border: none;
-  border-bottom: 2px solid #000040;
+  color: #000080;
 }
 
 .about-lead {
-  margin: 0;
-  padding: 10px 12px;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--outer-muted);
-  background: #ffffcc;
-  border-bottom: 1px solid #cccc99;
-}
-
-.about-rule {
-  margin: 0 12px;
-  border: none;
-  border-top: 1px solid #808080;
-  border-bottom: 1px solid #ffffff;
-  height: 0;
+  margin: 0 0 0.45em;
+  font-size: 1em;
+  color: #000000;
 }
 
 .about-section {
-  margin: 0;
-  padding: 10px 12px 4px;
+  margin: 0 0 0.45em;
 }
 
 .about-section:last-child {
-  padding-bottom: 12px;
+  margin-bottom: 0;
 }
 
 .about-section h3 {
-  margin: 0 0 6px;
-  padding: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;
+  margin: 0 0 0.2em;
+  font-family: var(--font-page);
+  font-size: 1.1em;
   font-weight: bold;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--win-navy);
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #9999cc;
-  display: inline-block;
-  padding-bottom: 1px;
+  color: #000000;
 }
 
 .about-section p {
-  margin: 0 0 8px;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--outer-ink);
+  margin: 0 0 0.35em;
+  font-size: 1em;
+  color: #000000;
 }
 
 .about-list,
 .about-links {
-  margin: 0 0 4px;
-  padding-left: 20px;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.about-list li + li,
-.about-links li + li {
-  margin-top: 2px;
+  margin: 0 0 0.2em;
+  padding-left: 24px;
+  font-size: 1em;
 }
 
 .about-links a {
-  color: var(--outer-link);
+  color: #0000ee;
   text-decoration: underline;
 }
 
 .about-links a:visited {
-  color: var(--outer-link-visited);
+  color: #551a8b;
 }
 
 .about-links a:active {
   color: #ff0000;
 }
 
-.about-links a:hover {
-  color: #ff0000;
-  background: #ffff00;
-}
-
 @media (max-width: 640px) {
   .desk {
-    padding: 8px 8px 20px;
-    gap: 8px;
+    padding: 6px;
   }
 
   .machine {
@@ -654,23 +602,7 @@ body {
     min-width: 0;
     min-height: 22rem;
     max-height: 94vh;
-    border-radius: 0;
-    padding: 4px;
-  }
-
-  .machine-title {
-    font-size: 20px;
-  }
-
-  .machine-titlebar {
-    flex-wrap: wrap;
-  }
-
-  .audio-controls {
-    margin: 0 8px 8px auto;
-  }
-
-  .about {
-    padding: 0;
+    padding: 12px 12px 20px;
+    border-radius: 6px;
   }
 }

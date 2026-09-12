@@ -207,7 +207,7 @@ void InteractClass::runInteraction(PlayerClass& player, ItemClass& greaterLibrar
                     mPuzzle.runPuzzle();
                     if (mPuzzle.isSolved())
                     {
-                        ui.displayPrompt("You solved the Mirror Puzzle! You recieved a half of a key in your inventory.");
+                        ui.displayPrompt("You solved the Mirror Puzzle! You received a half of a key in your inventory.");
                         PickUpItemClass pickup(mirrorItm);
                         pickup.addToInventory(player);
 
