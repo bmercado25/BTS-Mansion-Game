@@ -531,6 +531,67 @@ export class GameAudio {
     }
   }
 
+  /**
+   * Urgent approaching-monster alert — same family as Enter beep, but sharper
+   * and doubled so it reads as a warning, not a keypress.
+   */
+  playMonsterWarnBeep(): void {
+    if (this.muted) {
+      return;
+    }
+    try {
+      if (!this.unlocked) {
+        this.unlock();
+      }
+      const ctx = this.getAudioContext();
+      const now = ctx.currentTime;
+      const master = ctx.createGain();
+      master.gain.setValueAtTime(0.13, now);
+      master.connect(this.getMasterGain());
+
+      const pulse = (start: number, fromHz: number, toHz: number, dur: number) => {
+        const oscA = ctx.createOscillator();
+        const oscB = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
+
+        oscA.type = "square";
+        oscB.type = "sawtooth";
+        oscA.frequency.setValueAtTime(fromHz, now + start);
+        oscA.frequency.exponentialRampToValueAtTime(toHz, now + start + dur);
+        oscB.frequency.setValueAtTime(fromHz * 1.04, now + start);
+        oscB.frequency.exponentialRampToValueAtTime(
+          toHz * 1.03,
+          now + start + dur,
+        );
+
+        filter.type = "bandpass";
+        filter.frequency.setValueAtTime(720, now + start);
+        filter.Q.setValueAtTime(2.2, now + start);
+
+        gain.gain.setValueAtTime(0.0001, now + start);
+        gain.gain.exponentialRampToValueAtTime(1, now + start + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + start + dur);
+
+        oscA.connect(filter);
+        oscB.connect(filter);
+        filter.connect(gain);
+        gain.connect(master);
+
+        oscA.start(now + start);
+        oscB.start(now + start);
+        oscA.stop(now + start + dur + 0.03);
+        oscB.stop(now + start + dur + 0.03);
+      };
+
+      // Two rising sour pulses — concerning, not the soft Enter thud.
+      pulse(0, 220, 310, 0.16);
+      pulse(0.22, 240, 360, 0.2);
+    } catch {
+      /* ignore */
+    }
+  }
+
   playPickupFor(itemName: string): void {
     const name = itemName.toUpperCase();
     if (name.includes("KEY")) {

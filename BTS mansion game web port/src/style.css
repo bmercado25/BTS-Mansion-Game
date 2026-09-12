@@ -256,6 +256,39 @@ body {
   display: none !important;
 }
 
+/* Jumpscare: hard invert pulses — unsettling, not a seizure strobe. */
+.terminal.is-scare-flash {
+  animation: terminal-scare-invert 1.55s steps(1, end) both;
+}
+
+@keyframes terminal-scare-invert {
+  0%,
+  100% {
+    filter: none;
+  }
+  8%,
+  22%,
+  38%,
+  54%,
+  70% {
+    filter: invert(1) contrast(1.15);
+  }
+  15%,
+  30%,
+  46%,
+  62%,
+  78% {
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal.is-scare-flash {
+    animation: none;
+    filter: invert(1) contrast(1.1);
+  }
+}
+
 .terminal-content {
   position: relative;
   flex: 1;

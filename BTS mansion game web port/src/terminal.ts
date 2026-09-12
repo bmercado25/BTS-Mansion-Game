@@ -38,6 +38,8 @@ export type Terminal = {
   clearBanner: () => void;
   /** Hard black cut across the CRT — short, uncomfortable room transition. */
   blackout: (ms?: number) => Promise<void>;
+  /** Invert-pulse flash for jumpscare (skips motion if reduced-motion). */
+  scareFlash: (ms?: number) => Promise<void>;
 };
 
 type PendingAsk = {
@@ -181,6 +183,24 @@ export function createTerminal(root: HTMLElement): Terminal {
     blackoutEl.hidden = true;
   };
 
+  const scareFlash = async (ms = 1550): Promise<void> => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduceMotion) {
+      root.classList.add("is-scare-flash");
+      await sleep(Math.min(ms, 400));
+      root.classList.remove("is-scare-flash");
+      return;
+    }
+    root.classList.remove("is-scare-flash");
+    // Retrigger animation if called again quickly.
+    void root.offsetWidth;
+    root.classList.add("is-scare-flash");
+    await sleep(ms);
+    root.classList.remove("is-scare-flash");
+  };
+
   const setPlaceholder = (text: string): void => {
     input.placeholder = text;
   };
@@ -283,5 +303,6 @@ export function createTerminal(root: HTMLElement): Terminal {
     setBanner,
     clearBanner,
     blackout,
+    scareFlash,
   };
 }

@@ -192,6 +192,11 @@ export class UserInterface {
     return this.terminal.blackout(ms);
   }
 
+  /** Invert-pulse flash used with the monster jumpscare. */
+  scareFlash(ms = 1550): Promise<void> {
+    return this.terminal.scareFlash(ms);
+  }
+
   /** Unblock a waiting ask() (sanity game-over / quit). */
   cancelAsk(): void {
     this.terminal.cancelAsk();

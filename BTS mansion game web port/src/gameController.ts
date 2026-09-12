@@ -259,6 +259,7 @@ export class GameController {
         if (!this.running) {
           return;
         }
+        gameAudio.playMonsterWarnBeep();
         this.ui.displayLine(
           "The monster is approching, you must hide, hurry!",
           "alert",
@@ -295,6 +296,7 @@ export class GameController {
     this.ui.cancelAsk();
     this.ui.clear();
     gameAudio.play("jumpscare");
+    void this.ui.scareFlash();
     this.ui.displayPrompt(
       "A shadowy monster with elongated limbs grabs you, as the shadows encapsulating this monster consume you and all you can feel is its cold embrace.",
     );
