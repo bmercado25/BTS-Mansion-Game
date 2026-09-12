@@ -39,7 +39,7 @@ function wireAudioControls(): void {
   if (slider) {
     slider.value = String(Math.round(gameAudio.getVolume() * 100));
     const applyVolume = () => {
-      gameAudio.unlock();
+      void gameAudio.unlockAsync();
       gameAudio.setVolume(Number(slider.value) / 100);
     };
     slider.addEventListener("input", applyVolume);
@@ -49,20 +49,24 @@ function wireAudioControls(): void {
   if (button) {
     syncMuteButton(button);
     button.addEventListener("click", () => {
-      gameAudio.unlock();
+      void gameAudio.unlockAsync();
       gameAudio.toggleMute();
       syncMuteButton(button);
     });
   }
 }
 
-/** First keypress / click unlocks audio for later SFX (autoplay policy). */
+/**
+ * Keep trying on every gesture until the AudioContext is actually running.
+ * (once:true was wrong — a failed/early unlock left ambient dead until the
+ * volume slider resumed the context again.)
+ */
 function wireAudioUnlock(): void {
   const unlock = () => {
-    gameAudio.unlock();
+    void gameAudio.unlockAsync();
   };
-  window.addEventListener("pointerdown", unlock, { once: true });
-  window.addEventListener("keydown", unlock, { once: true });
+  window.addEventListener("pointerdown", unlock);
+  window.addEventListener("keydown", unlock);
 }
 
 async function menuFlow(): Promise<void> {
@@ -77,7 +81,7 @@ async function menuFlow(): Promise<void> {
 
   while (true) {
     const command = normalizeCommand(await ui.userInput());
-    gameAudio.unlock();
+    await gameAudio.unlockAsync();
 
     if (command === "START" || command === "START GAME") {
       await gameAudio.enterGameplay();
@@ -85,6 +89,7 @@ async function menuFlow(): Promise<void> {
       ui.displayPrompt("");
       ui.displayPrompt("Press Enter to return to the menu.");
       await ui.waitForInput();
+      await gameAudio.unlockAsync();
       gameAudio.enterMenu();
       ui.clear();
       ui.displayMenu();

@@ -176,22 +176,26 @@ export class Room {
 
   /** Port of C++ AmendDescription — base text + item blurbs. */
   amendDescription(): string {
-    let text = this.roomDescription;
-    const count = this.items.length;
-    if (count === 0) {
-      return text;
+    // Room data often ends with "\n"; keep items in the same paragraph.
+    const base = this.roomDescription.replace(/\s+$/u, "");
+    const descs = this.items
+      .map((item) => item.getDescription().replace(/\s+$/u, ""))
+      .filter((desc) => desc.length > 0)
+      // Item blurbs are full sentences; strip endings so the list can take one period.
+      .map((desc) => desc.replace(/[.!?]+$/u, ""));
+
+    if (descs.length === 0) {
+      return base;
+    }
+    if (descs.length === 1) {
+      return `${base} This room contains ${descs[0]}.`;
+    }
+    if (descs.length === 2) {
+      return `${base} This room contains ${descs[0]}, and ${descs[1]}.`;
     }
 
-    for (let i = 0; i < count; i++) {
-      const desc = this.items[i]?.getDescription() ?? "";
-      if (i === 0) {
-        text += ` This room contains ${desc}`;
-      } else if (i !== count - 1) {
-        text += `, ${desc}`;
-      } else {
-        text += ` and ${desc}.`;
-      }
-    }
-    return text;
+    const head = descs.slice(0, -1).join("; ");
+    const last = descs[descs.length - 1]!;
+    return `${base} This room contains ${head}; and ${last}.`;
   }
 }

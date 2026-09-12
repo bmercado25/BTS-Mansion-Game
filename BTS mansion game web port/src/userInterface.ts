@@ -68,7 +68,8 @@ export class UserInterface {
     this.terminal.setStatus({ room: "MENU", sanity: null });
     this.terminal.setPlaceholder("");
     this.suppressNoticeCapture = true;
-    this.terminal.print("***Welcome to the BTS Mansion Game!***", "heading");
+    this.terminal.print("Mansion", "heading");
+
     this.terminal.print("===== Main Menu =====", "system");
     this.terminal.print("START Game", "exits");
     this.terminal.print("QUIT", "exits");
@@ -107,10 +108,12 @@ export class UserInterface {
     this.terminal.print(`Sanity Level: ${sanity}`, sanity <= 35 ? "alert" : "dim");
     this.terminal.print("", "body");
 
+    // Collapse leftover newlines so "This room contains…" stays one paragraph.
+    const prose = description.replace(/\s*\n+\s*/g, " ").replace(/[ \t]+/g, " ").trim();
     if (jumbleSanity) {
-      this.terminal.print(this.formatSanityPrompt(description, sanity), "room");
+      this.terminal.print(this.formatSanityPrompt(prose, sanity), "room");
     } else {
-      this.terminal.print(description, "room");
+      this.terminal.print(prose, "room");
     }
 
     this.terminal.print("", "body");

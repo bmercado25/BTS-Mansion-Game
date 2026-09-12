@@ -295,6 +295,19 @@ export function createTerminal(root: HTMLElement): Terminal {
     input.focus();
   });
 
+  input.addEventListener("keydown", (event) => {
+    if (event.metaKey || event.ctrlKey || event.altKey) {
+      return;
+    }
+    // Enter uses the deeper submit beep; skip modifiers / navigation.
+    if (event.key === "Enter" || event.key === "Tab" || event.key === "Escape") {
+      return;
+    }
+    if (event.key.length === 1 || event.key === "Backspace" || event.key === "Delete") {
+      gameAudio.playKeyBeep();
+    }
+  });
+
   for (const eventName of ["input", "keydown", "keyup", "click", "select", "focus"] as const) {
     input.addEventListener(eventName, () => {
       // keydown needs a frame so selectionStart is updated for arrows.

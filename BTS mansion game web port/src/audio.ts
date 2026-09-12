@@ -43,7 +43,7 @@ const SFX_FILES: Record<SfxId, string> = {
 };
 
 const MUTE_STORAGE_KEY = "bts-mansion-audio-muted";
-const VOLUME_STORAGE_KEY = "bts-mansion-audio-volume-v2";
+const VOLUME_STORAGE_KEY = "bts-mansion-audio-volume-v3";
 
 type AmbientKind = "hum" | "drone";
 
@@ -60,6 +60,7 @@ export class GameAudio {
   private unlocked = false;
   private audioCtx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
+  private unlockInFlight: Promise<void> | null = null;
   /** What ambient should be playing when unmuted. */
   private desiredAmbient: AmbientKind | "none" = "hum";
   /** When true, ambient stays off (monster approaching silence). */
@@ -82,10 +83,19 @@ export class GameAudio {
     if (!this.audioCtx) {
       this.audioCtx = new AudioContext();
     }
-    if (this.audioCtx.state === "suspended") {
-      void this.audioCtx.resume();
-    }
     return this.audioCtx;
+  }
+
+  private async ensureRunning(): Promise<boolean> {
+    const ctx = this.getAudioContext();
+    if (ctx.state !== "running") {
+      try {
+        await ctx.resume();
+      } catch {
+        return false;
+      }
+    }
+    return ctx.state === "running";
   }
 
   /** All synthesized audio routes through this so the slider applies. */
@@ -136,17 +146,42 @@ export class GameAudio {
     return this.muted;
   }
 
-  /** Call from a user gesture so playback is allowed, then preload all SFX. */
+  /**
+   * Call from a user gesture so playback is allowed, then preload all SFX.
+   * Must await AudioContext.resume() before starting ambient — otherwise the
+   * hum graph starts while suspended and stays silent until something (e.g.
+   * the volume slider) resumes again.
+   */
   unlock(): void {
-    if (this.unlocked) {
-      void this.audioCtx?.resume();
-      this.syncAmbient();
-      return;
+    void this.unlockAsync();
+  }
+
+  async unlockAsync(): Promise<void> {
+    if (this.unlockInFlight) {
+      return this.unlockInFlight;
     }
-    this.unlocked = true;
-    this.preloadAll();
-    if (this.desiredAmbient === "none") {
-      this.desiredAmbient = "hum";
+    this.unlockInFlight = this.runUnlock();
+    try {
+      await this.unlockInFlight;
+    } finally {
+      this.unlockInFlight = null;
+    }
+  }
+
+  private async runUnlock(): Promise<void> {
+    const running = await this.ensureRunning();
+    this.getMasterGain();
+
+    if (!this.unlocked) {
+      this.unlocked = true;
+      this.preloadAll();
+      if (this.desiredAmbient === "none") {
+        this.desiredAmbient = "hum";
+      }
+    }
+
+    if (!running) {
+      return;
     }
     this.syncAmbient();
   }
@@ -165,6 +200,13 @@ export class GameAudio {
     this.threatSilence = false;
     this.desiredAmbient = "drone";
     this.stopAmbientLoop(0.15);
+    // Resume without syncAmbient (would start the drone mid-beep).
+    await this.ensureRunning();
+    this.getMasterGain();
+    if (!this.unlocked) {
+      this.unlocked = true;
+      this.preloadAll();
+    }
     await this.playErrorBeep();
     this.syncAmbient();
   }
@@ -189,10 +231,12 @@ export class GameAudio {
       this.stopAmbientLoop();
       return;
     }
-    if (this.ambientKind === this.desiredAmbient) {
+    const ctxRunning = this.audioCtx?.state === "running";
+    if (this.ambientKind === this.desiredAmbient && ctxRunning) {
       return;
     }
-    this.stopAmbientLoop(0.2);
+    // Restart if context wasn't running when ambient first started (silent graph).
+    this.stopAmbientLoop(this.ambientKind ? 0.05 : 0);
     if (this.desiredAmbient === "hum") {
       this.startHumLoop();
     } else {
@@ -545,6 +589,81 @@ export class GameAudio {
       oscB.start(now);
       oscA.stop(now + duration + 0.02);
       oscB.stop(now + duration + 0.02);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  /** Short dingy analog terminal tick on each keypress. */
+  playKeyBeep(): void {
+    if (this.muted) {
+      return;
+    }
+    try {
+      if (!this.unlocked) {
+        this.unlock();
+      }
+      const ctx = this.getAudioContext();
+      const now = ctx.currentTime;
+      const duration = 0.055;
+      // Tiny random detune so repeats feel worn / unstable
+      const wobble = 1 + (Math.random() * 0.04 - 0.02);
+      const base = 740 * wobble;
+
+      const oscA = ctx.createOscillator();
+      const oscB = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const mud = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      // Slightly out-of-tune pair = old cracked piezo / tired CRT coil
+      oscA.type = "square";
+      oscB.type = "triangle";
+      oscA.frequency.setValueAtTime(base, now);
+      oscA.frequency.exponentialRampToValueAtTime(base * 0.72, now + duration);
+      oscB.frequency.setValueAtTime(base * 1.027, now);
+      oscB.frequency.exponentialRampToValueAtTime(base * 0.69, now + duration);
+
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(980, now);
+      filter.frequency.exponentialRampToValueAtTime(520, now + duration);
+      filter.Q.setValueAtTime(3.4, now);
+
+      // Dull the top end — dusty speaker, not a clean beep
+      mud.type = "lowpass";
+      mud.frequency.setValueAtTime(1600, now);
+      mud.Q.setValueAtTime(0.7, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.085, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+      // Brief noise grit under the tone
+      const noiseLen = Math.floor(ctx.sampleRate * 0.03);
+      const noiseBuf = ctx.createBuffer(1, noiseLen, ctx.sampleRate);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < noiseLen; i++) {
+        data[i] = (Math.random() * 2 - 1) * (1 - i / noiseLen);
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = noiseBuf;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.045, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.028);
+
+      oscA.connect(filter);
+      oscB.connect(filter);
+      filter.connect(mud);
+      noise.connect(mud);
+      mud.connect(gain);
+      gain.connect(this.getMasterGain());
+
+      oscA.start(now);
+      oscB.start(now);
+      noise.start(now);
+      oscA.stop(now + duration + 0.02);
+      oscB.stop(now + duration + 0.02);
+      noise.stop(now + 0.035);
     } catch {
       /* ignore */
     }
