@@ -1,0 +1,9 @@
+# Keep the Vercel upload lean — only the Vite web port is deployed.
+BTS Mansion Game
+BTS_MansionGame_AutomatedTest
+*.sln
+**/.vs
+**/Debug
+**/Release
+**/x64
+**/x86
