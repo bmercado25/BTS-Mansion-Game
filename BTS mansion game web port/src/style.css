@@ -56,20 +56,31 @@ body {
 }
 
 .machine-brand {
-  margin: 0 0 0.15em;
+  margin: 0 0 0.2em;
   font-family: var(--font-page);
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 0.75rem;
+  font-weight: normal;
+  letter-spacing: 0.04em;
   color: #ffff00;
 }
 
 .machine-title {
-  margin: 0 0 0.25em;
+  margin: 0;
   font-family: var(--font-page);
-  font-size: 2em;
+  font-size: clamp(2.75rem, 8vw, 4.25rem);
   font-weight: bold;
   color: #ffffff;
-  line-height: 1.15;
+  line-height: 1.05;
+}
+
+.machine-tagline {
+  margin: 0.15em 0 0;
+  font-family: var(--font-page);
+  font-size: 0.95rem;
+  font-weight: normal;
+  font-style: italic;
+  color: #ffffff;
+  opacity: 0.85;
 }
 
 .audio-controls {
@@ -146,11 +157,11 @@ body {
 /* Flat cream Macintosh CRT shell — no gradient, no drop shadow */
 .machine {
   width: 100%;
-  height: min(90vh, 64rem);
+  height: min(94vh, 72rem);
   min-width: 28rem;
-  min-height: 28rem;
+  min-height: 32rem;
   max-width: 100%;
-  max-height: 96vh;
+  max-height: none;
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -291,6 +302,33 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Main menu only — center the title card in the CRT. */
+.terminal.is-menu .terminal-content {
+  justify-content: center;
+}
+
+.terminal.is-menu .terminal-output {
+  flex: 0 1 auto;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.terminal.is-menu .terminal-line,
+.terminal.is-menu .terminal-pre {
+  text-align: center;
+  width: 100%;
+}
+
+/* Keep START / QUIT on a shared left edge while the block stays centered. */
+.terminal.is-menu .terminal-line.is-exits {
+  width: 28ch;
+  text-align: left;
+  white-space: pre;
 }
 
 .terminal-status {
@@ -601,10 +639,10 @@ body {
 
   .machine {
     width: 100%;
-    height: min(85vh, 48rem);
+    height: min(88vh, 56rem);
     min-width: 0;
-    min-height: 22rem;
-    max-height: 94vh;
+    min-height: 24rem;
+    max-height: none;
     padding: 12px 12px 20px;
     border-radius: 6px;
   }

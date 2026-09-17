@@ -65,17 +65,25 @@ export class UserInterface {
     this.pendingNotices = [];
     this.terminal.clearBanner();
     this.terminal.clear();
-    this.terminal.setStatus({ room: "MENU", sanity: null });
-    this.terminal.setPlaceholder("");
+    this.terminal.setMenuMode(true);
+    this.terminal.setStatus({ room: "FOYER", sanity: null });
+    this.terminal.setPlaceholder("START or QUIT…");
     this.suppressNoticeCapture = true;
-    this.terminal.print("Malum", "heading");
 
-    this.terminal.print("===== Main Menu =====", "system");
-    this.terminal.print("START Game", "exits");
-    this.terminal.print("QUIT", "exits");
-    this.terminal.print("=====================", "system");
+    this.terminal.print("────────────────────────────────────────", "divider");
+    this.terminal.print('"FOYER"', "heading");
+    this.terminal.print("────────────────────────────────────────", "divider");
+    this.terminal.print("", "body");
+    this.terminal.print("A threshold that should not be empty.", "dim");
+    this.terminal.print("", "body");
+    this.terminal.print("────────────────────────────────────────", "divider");
+    this.terminal.print("", "body");
+    this.terminal.print("START  cross the threshold", "exits");
+    this.terminal.print("QUIT   turn away", "exits");
+    this.terminal.print("", "body");
+    this.terminal.print("────────────────────────────────────────", "divider");
     this.terminal.print(
-      "Words in all caps will be input options for this game, please enter an option:",
+      "Words in ALL CAPS are commands. Enter an option.",
       "dim",
     );
     this.suppressNoticeCapture = false;

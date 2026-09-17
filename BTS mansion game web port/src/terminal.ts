@@ -29,6 +29,8 @@ export type Terminal = {
   print: (line: string, kind?: LineKind) => void;
   printPre: (block: string) => void;
   clear: () => void;
+  /** Center the CRT log (menu only). */
+  setMenuMode: (on: boolean) => void;
   ask: (prompt?: string) => Promise<string>;
   cancelAsk: () => void;
   sleep: (ms: number) => Promise<void>;
@@ -166,6 +168,11 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   const clear = (): void => {
     output.replaceChildren();
+    root.classList.remove("is-menu");
+  };
+
+  const setMenuMode = (on: boolean): void => {
+    root.classList.toggle("is-menu", on);
   };
 
   const sleep = (ms: number): Promise<void> =>
@@ -326,6 +333,7 @@ export function createTerminal(root: HTMLElement): Terminal {
     print,
     printPre,
     clear,
+    setMenuMode,
     ask,
     cancelAsk,
     sleep,
