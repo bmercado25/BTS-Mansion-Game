@@ -68,7 +68,7 @@ export class UserInterface {
     this.terminal.setStatus({ room: "MENU", sanity: null });
     this.terminal.setPlaceholder("");
     this.suppressNoticeCapture = true;
-    this.terminal.print("Mansion", "heading");
+    this.terminal.print("malum", "heading");
 
     this.terminal.print("===== Main Menu =====", "system");
     this.terminal.print("START Game", "exits");
