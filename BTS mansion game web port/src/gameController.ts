@@ -567,7 +567,7 @@ export class GameController {
 
       this.ui.clear();
       this.ui.displayLine(
-        "You tried to choose your option but you couldn't move your body. It seems like there is an unforeseen force telling you can't perform that action..You look around again",
+        "You tried to choose your option but you couldn't move your body. It seems like there is an unforeseen force telling you can't perform that action. You look around again",
         "alert",
       );
     }
