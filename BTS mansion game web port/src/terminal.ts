@@ -78,6 +78,21 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   let pending: PendingAsk | null = null;
   let caretCanvas: HTMLCanvasElement | null = null;
+  /** Keep the page pinned to the top while the CRT boots / first focus. */
+  let pinPageTop = true;
+
+  const focusInput = (): void => {
+    input.focus({ preventScroll: true });
+    if (pinPageTop) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  };
+
+  window.setTimeout(() => {
+    pinPageTop = false;
+  }, 1200);
 
   const syncCaret = (): void => {
     if (!caret) {
@@ -260,7 +275,7 @@ export function createTerminal(root: HTMLElement): Terminal {
       print(prompt, "system");
     }
 
-    input.focus({ preventScroll: true });
+    focusInput();
 
     return new Promise<string>((resolve) => {
       pending = { resolve };
@@ -299,7 +314,7 @@ export function createTerminal(root: HTMLElement): Terminal {
   });
 
   root.addEventListener("click", () => {
-    input.focus({ preventScroll: true });
+    focusInput();
   });
 
   input.addEventListener("keydown", (event) => {
@@ -324,7 +339,8 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   setPlaceholder("");
   setStatus({ room: "MENU", sanity: null });
-  input.focus({ preventScroll: true });
+  // Don't autofocus on boot — focusing the input at the bottom of a tall CRT
+  // scrolls the page halfway down on first paint.
   syncCaret();
   window.scrollTo(0, 0);
 

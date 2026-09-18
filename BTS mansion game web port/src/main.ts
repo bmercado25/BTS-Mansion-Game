@@ -119,6 +119,29 @@ async function menuFlow(): Promise<void> {
 
 wireAudioControls();
 wireAudioUnlock();
-window.scrollTo(0, 0);
-requestAnimationFrame(() => window.scrollTo(0, 0));
+
+if ("scrollRestoration" in history) {
+  history.scrollRestoration = "manual";
+}
+
+const pinTop = () => {
+  window.scrollTo(0, 0);
+  document.documentElement.scrollTop = 0;
+  document.body.scrollTop = 0;
+};
+pinTop();
+window.addEventListener("scroll", pinTop, { passive: true });
+window.setTimeout(() => {
+  window.removeEventListener("scroll", pinTop);
+}, 1200);
+
 void menuFlow();
+
+// ask() focuses the input after the menu paints — re-pin once that settles.
+requestAnimationFrame(() => {
+  pinTop();
+  requestAnimationFrame(pinTop);
+});
+window.setTimeout(pinTop, 0);
+window.setTimeout(pinTop, 100);
+window.setTimeout(pinTop, 300);
