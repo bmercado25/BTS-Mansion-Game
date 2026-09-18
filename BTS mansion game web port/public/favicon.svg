@@ -1,12 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="F">
   <rect width="32" height="32" fill="#8b0000"/>
-  <text
-    x="16"
-    y="24"
-    text-anchor="middle"
-    font-family="Times New Roman, Times, serif"
-    font-size="24"
-    font-weight="700"
+  <!-- Path-based serif F (SVG <text> often fails as a favicon in Chrome/Safari) -->
+  <path
     fill="#fff4d8"
-  >F</text>
+    d="M8 5h17v3.4H12.3v5.1H22v3H12.3V27H8V5zm-.8-.7h2.6v1H7.2v-.3zm0 22.4h2.6v1H7.2v-.3zm16.6-.3h1v1h-1v-1zm-2.4-11.5h1v1h-1v-1z"
+  />
 </svg>

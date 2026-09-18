@@ -119,4 +119,6 @@ async function menuFlow(): Promise<void> {
 
 wireAudioControls();
 wireAudioUnlock();
+window.scrollTo(0, 0);
+requestAnimationFrame(() => window.scrollTo(0, 0));
 void menuFlow();

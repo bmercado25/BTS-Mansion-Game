@@ -260,7 +260,7 @@ export function createTerminal(root: HTMLElement): Terminal {
       print(prompt, "system");
     }
 
-    input.focus();
+    input.focus({ preventScroll: true });
 
     return new Promise<string>((resolve) => {
       pending = { resolve };
@@ -299,7 +299,7 @@ export function createTerminal(root: HTMLElement): Terminal {
   });
 
   root.addEventListener("click", () => {
-    input.focus();
+    input.focus({ preventScroll: true });
   });
 
   input.addEventListener("keydown", (event) => {
@@ -324,8 +324,9 @@ export function createTerminal(root: HTMLElement): Terminal {
 
   setPlaceholder("");
   setStatus({ room: "MENU", sanity: null });
-  input.focus();
+  input.focus({ preventScroll: true });
   syncCaret();
+  window.scrollTo(0, 0);
 
   clearBanner();
 
